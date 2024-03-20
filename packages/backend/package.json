@@ -1,0 +1,21 @@
+{
+  "name": "backend",
+  "version": "0.0.0",
+  "description": "description",
+  "author": "Andreyko2003 <andreyko.ishchenko@gmail.com>",
+  "license": "ISC",
+  "main": "index.js",
+  "directories": {},
+  "files": [],
+  "repository": {
+    "type": "git",
+    "url": "https://git.ztu.edu.ua/ipz/bachelor-2020-2024/zipz-20-1/ishchenko-andrii/webchat.git"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.3",
+    "sqlite3": "^5.1.7"
+  }
+}

@@ -6,6 +6,7 @@ const AuthContext = createContext();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
 
   const login = (newToken) => {
     setToken(newToken);
@@ -17,8 +18,6 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
   };
 
-  const isAuthenticated = () => !!token;
-
   const fetchUserData = useCallback(async () => {
     if (token && token !== 'undefined') {
       try {
@@ -28,8 +27,11 @@ const AuthProvider = ({ children }) => {
           },
         });
         setUser(response.data);
+        setIsAuthenticated(true);
       } catch (error) {
         console.error('Error fetching user data', error);
+        setIsAuthenticated(false);
+        logout();
       }
     }
   }, [token]);

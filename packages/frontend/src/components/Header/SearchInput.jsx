@@ -71,7 +71,7 @@ const MenuItem = styled("div")({
   color: "#000000",
 });
 
-const SearchInput = () => {
+const SearchInput = ({ setCurrentChat }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -112,6 +112,21 @@ const SearchInput = () => {
     setSearchResults([]);
   };
 
+  const createChat = async (userId) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/chat",
+        { userId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setCurrentChat(response.data);
+    } catch (error) {}
+  };
+
   return (
     <SearchContainer>
       <SearchIconContainer>
@@ -137,7 +152,7 @@ const SearchInput = () => {
         >
           {searchResults.length > 0
             ? searchResults.map((user) => (
-                <MenuItem key={user._id}>
+                <MenuItem key={user._id} onClick={() => createChat(user._id)}>
                   <Avatar
                     alt={`${user.firstName} ${user.lastName}`}
                     src={user.avatar}

@@ -1,67 +1,66 @@
 const Chat = require("../models/chatModel");
+const User = require("../models/userModel");
 
 const createChat = async (req, res) => {
   const { userId } = req.body;
 
   if (!userId) {
-    return res.send(400).json({ error: "UserId wasn`t send" });
+    return res.status(400).json({ error: "UserId wasn't sent" });
   }
 
-  const chats = await Chat.find({
-    isGroupChat: false,
-    $and: [
-      { users: { elemMatch: { $eq: req.user._id } } },
-      { users: { elemMatch: { $eq: userId } } },
-    ],
-  })
-    .populate("users", "-password")
-    .populate("latestMesage");
+  try {
+    const existingChat = await Chat.findOne({
+      isGroupChat: false,
+      users: { $all: [req.user._id, userId] },
+    })
+      .populate("users", "-password")
+      .populate("latestMessage");
 
-  const userChats = await User.populate(chats, {
-    path: "latesMessage.sender",
-    select: "firstName lastName avatar email",
-  });
+    if (existingChat) {
+      return res.status(200).json(existingChat);
+    }
 
-  if (userChats.length > 0) {
-    res.send(userChats[0]);
-  } else {
     const chatData = {
       chatName: "sender",
       isGroupChat: false,
       users: [req.user._id, userId],
     };
 
-    try {
-      const createChat = await Chat.create(chatData);
-      const chat = await Chat.findOne({ _id: createChat._id }).populate(
-        "users",
-        "-password"
-      );
+    const createdChat = await Chat.create(chatData);
+    const chat = await Chat.findOne({ _id: createdChat._id }).populate(
+      "users",
+      "-password"
+    );
 
-      return res.status(200).json(chat);
-    } catch (err) {
-      return res.status(500);
-    }
+    return res.status(200).json(chat);
+  } catch (err) {
+    console.error("Error creating chat:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 const getMyChats = async (req, res) => {
   try {
     const chats = await Chat.find({
-      users: { elemMatch: { $eq: req.user._id } },
+      users: { $elemMatch: { $eq: req.user._id } },
     })
       .populate("users", "-password")
       .populate("groupAdmin", "-password")
       .populate("latestMessage");
 
+    if (!chats || chats.length === 0) {
+      return res.json([]);
+    }
+
     const results = await User.populate(chats, {
-      path: "latesMessage.sender",
+      path: "latestMessage.sender",
       select: "firstName lastName avatar email",
     });
 
     return res.json(results);
-  } catch {
-    return res.status(500);
+  } catch (error) {
+    console.error("Error fetching chats:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 

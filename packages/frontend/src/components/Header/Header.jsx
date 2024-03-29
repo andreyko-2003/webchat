@@ -45,7 +45,7 @@ const MenuItemWrapper = styled(MenuItem)(({ theme }) => ({
   gap: theme.spacing(1),
 }));
 
-const Header = ({ user }) => {
+const Header = ({ user, setCurrentChat }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const { logout } = useAuth();
 
@@ -66,7 +66,7 @@ const Header = ({ user }) => {
     <HeaderAppBar position="fixed">
       <HeaderToolbar>
         <Typography variant="h6">WebChat</Typography>
-        <SearchInput />
+        <SearchInput setCurrentChat={setCurrentChat} />
         <AvatarIconButton
           edge="end"
           aria-label="account of current user"

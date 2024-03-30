@@ -232,7 +232,14 @@ function SignUp() {
               ) : (
                 <Avatar
                   alt="Avatar"
-                  sx={{ width: 100, height: 100, my: 1, cursor: "pointer" }}
+                  sx={{
+                    width: 100,
+                    height: 100,
+                    my: 1,
+                    cursor: "pointer",
+                    background: "gray",
+                    color: "white",
+                  }}
                   onClick={() =>
                     document.getElementById("avatar-upload").click()
                   }

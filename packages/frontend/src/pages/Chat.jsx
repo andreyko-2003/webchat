@@ -4,11 +4,19 @@ import { useAuth } from "../contexts/AuthContext";
 import { Box, CircularProgress, Grid, Typography } from "@mui/material";
 import Sidebar from "../components/Sidebar/Sidebar";
 import ChatBox from "../components/ChatBox/ChatBox";
+import { getContacts } from "../utils/contacts";
 
 function Chat() {
   const { user } = useAuth();
   const [currentChat, setCurrentChat] = useState({});
-  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 960);
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 600);
+  const [updateChats, setUpdateChats] = useState();
+  const [chats, setChats] = useState([]);
+  const [contacts, setContacts] = useState(getContacts(chats, user));
+
+  useEffect(() => {
+    setContacts(getContacts(chats, user));
+  }, [chats, user]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -24,7 +32,12 @@ function Chat() {
 
   return user ? (
     <>
-      <Header user={user} setCurrentChat={setCurrentChat} />
+      <Header
+        user={user}
+        setCurrentChat={setCurrentChat}
+        setUpdateChats={setUpdateChats}
+        contacts={contacts}
+      />
       <Box
         sx={{ flexGrow: 1, display: "flex", overflow: "hidden", mt: "64px" }}
       >
@@ -36,6 +49,9 @@ function Chat() {
                 user={user}
                 currentChat={currentChat}
                 setCurrentChat={setCurrentChat}
+                updateChats={updateChats}
+                chats={chats}
+                setChats={setChats}
               />
             </Grid>
           )}
@@ -44,6 +60,8 @@ function Chat() {
             <Grid item xs={12} sm={8} md={9}>
               {Object.keys(currentChat).length > 0 ? (
                 <ChatBox
+                  isSmallScreen={isSmallScreen}
+                  user={user}
                   currentChat={currentChat}
                   setCurrentChat={setCurrentChat}
                 />

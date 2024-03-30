@@ -5,10 +5,11 @@ import ListItem from "@mui/material/ListItem";
 import Typography from "@mui/material/Typography";
 import LinearProgress from "@mui/material/LinearProgress";
 import Avatar from "@mui/material/Avatar";
-import Divider from "@mui/material/Divider";
 import { styled } from "@mui/system";
 import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
+import { getChatInfo } from "../../utils/chat";
+import GroupsIcon from "@mui/icons-material/Groups";
 
 const StyledSidebar = styled(Box)({
   width: "100%",
@@ -29,8 +30,14 @@ const StyledSidebar = styled(Box)({
   },
 });
 
-const Sidebar = ({ user, currentChat, setCurrentChat }) => {
-  const [chats, setChats] = useState([]);
+const Sidebar = ({
+  user,
+  currentChat,
+  setCurrentChat,
+  updateChats,
+  chats,
+  setChats,
+}) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { token } = useAuth();
@@ -52,7 +59,7 @@ const Sidebar = ({ user, currentChat, setCurrentChat }) => {
       }
     };
     fetchChats();
-  }, [token, currentChat]);
+  }, [token, updateChats, setChats]);
 
   return (
     <StyledSidebar>
@@ -63,51 +70,51 @@ const Sidebar = ({ user, currentChat, setCurrentChat }) => {
           {error}
         </Typography>
       ) : (
-        <List sx={{ flexGrow: 1 }}>
+        <List sx={{ flexGrow: 1, px: 1 }}>
           {chats && chats.length > 0 ? (
-            chats.map((chat, index) => (
-              <React.Fragment key={index}>
-                {chat.users.map(
-                  (chatUser) =>
-                    user._id !== chatUser._id && (
-                      <React.Fragment key={chatUser._id}>
-                        <ListItem
-                          button
-                          onClick={() => setCurrentChat(chat)}
-                          sx={{
-                            backgroundColor:
-                              chat._id === currentChat._id
-                                ? "#31473A30"
-                                : "inherit",
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Avatar
-                              alt={`${chatUser.firstName} ${chatUser.lastName}`}
-                              src={chatUser.avatar}
-                              sx={{ marginRight: "8px" }}
-                            />
-                            <div>
-                              <Typography variant="body1">
-                                {`${chatUser.firstName} ${chatUser.lastName}`}
-                              </Typography>
-                              <Typography variant="body2">
-                                {chatUser.lastMessage}
-                              </Typography>
-                            </div>
-                          </Box>
-                        </ListItem>
-                        <Divider />
-                      </React.Fragment>
-                    )
-                )}
-              </React.Fragment>
-            ))
+            chats.map((chat, index) => {
+              const chatInfo = getChatInfo(chat, user);
+              return (
+                <React.Fragment key={index}>
+                  <ListItem
+                    button
+                    onClick={() => setCurrentChat(chat)}
+                    sx={{
+                      borderRadius: 4,
+                      backgroundColor:
+                        chat._id === currentChat._id ? "#31473A30" : "inherit",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Avatar
+                        alt={chatInfo.title}
+                        src={chatInfo.avatar}
+                        sx={{
+                          marginRight: "8px",
+                          background: "gray",
+                          color: "white",
+                        }}
+                      >
+                        {chat.isGroupChat && !chat.avatar && <GroupsIcon />}
+                      </Avatar>
+                      <div>
+                        <Typography variant="body1">
+                          {chatInfo.title}
+                        </Typography>
+                        <Typography variant="body2">
+                          {chat.latestMessage}
+                        </Typography>
+                      </div>
+                    </Box>
+                  </ListItem>
+                </React.Fragment>
+              );
+            })
           ) : (
             <Typography variant="body1">
               You don't have any chats. Use search to find.

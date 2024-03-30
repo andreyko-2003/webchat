@@ -65,18 +65,23 @@ const getMyChats = async (req, res) => {
 };
 
 const createGroupChat = async (req, res) => {
-  const { name } = req.body;
-  const users = JSON.parse(req.body.users);
+  const { title, description, avatar, users } = req.body;
 
-  if (!users || !name) {
-    return res.status(400);
+  if (!users || !title) {
+    return res
+      .status(400)
+      .json({
+        error: "Invalid request parameters. Users and title are required.",
+      });
   }
 
   users.push(req.user);
 
   try {
     const groupChat = await Chat.create({
-      chatName: name,
+      chatName: title,
+      chatDescription: description,
+      avatar: avatar,
       users: users,
       isGroupChat: true,
       groupChat: req.user,

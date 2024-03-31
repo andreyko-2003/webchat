@@ -12,10 +12,14 @@ import {
   Modal,
   Box,
   CircularProgress,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import GroupsIcon from "@mui/icons-material/Groups";
 import CloseIcon from "@mui/icons-material/Close";
-import AddUserSearchInput from "./AddUserSearchInput";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import ModalBox from "../ModalBox";
+import AddUserSearchInput from "../../Inputs/AddUserSearchInput";
 
 const CreateGroupModal = ({
   isOpen,
@@ -28,7 +32,10 @@ const CreateGroupModal = ({
   const [errorMessage, setErrorMessage] = useState("");
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [groupAdmins, setGroupAdmins] = useState([user]);
   const [selectedContacts, setSelectedContacts] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorElTitle, setAnchorElTitle] = useState(null);
   const { token } = useAuth();
 
   const handleCreateGroup = async (data) => {
@@ -38,6 +45,7 @@ const CreateGroupModal = ({
         "http://localhost:5000/chat/group",
         {
           ...data,
+          groupAdmins: groupAdmins,
           avatar: avatarUrl,
           users: selectedContacts,
         },
@@ -92,27 +100,37 @@ const CreateGroupModal = ({
     );
   };
 
+  const handleMakeAdmin = (user) => {
+    setGroupAdmins((prevAdmins) => [...prevAdmins, user]);
+    setSelectedContacts((prevContacts) =>
+      prevContacts.filter((contact) => contact._id !== user._id)
+    );
+    setAnchorEl(null);
+    setAnchorElTitle(null);
+  };
+
+  const handleRemoveAdmin = (user) => {
+    setGroupAdmins((prevAdmins) =>
+      prevAdmins.filter((admin) => admin._id !== user._id)
+    );
+    setSelectedContacts((prevContacts) => [...prevContacts, user]);
+    setAnchorEl(null);
+    setAnchorElTitle(null);
+  };
+
+  const handleMenuOpen = (event, isAdmin) => {
+    setAnchorEl(event.currentTarget);
+    setAnchorElTitle(isAdmin ? "admin" : "user");
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setAnchorElTitle(null);
+  };
+
   return (
     <Modal open={isOpen} onClose={handleClose}>
-      <Box
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          bgcolor: "background.paper",
-          boxShadow: 24,
-          p: 4,
-          minWidth: 320,
-          maxWidth: 480,
-          borderRadius: 8,
-          maxHeight: 600,
-          overflowY: "scroll",
-          "&::-webkit-scrollbar": {
-            display: "none",
-          },
-        }}
-      >
+      <ModalBox>
         <Typography component="h2" variant="h5">
           Create Group
         </Typography>
@@ -186,20 +204,46 @@ const CreateGroupModal = ({
 
           <AddUserSearchInput
             onSubmit={addUser}
-            selectedContacts={selectedContacts}
+            selectedContacts={selectedContacts.concat(groupAdmins)}
           />
 
-          <Box sx={{ display: "flex", alignItems: "center", my: 1 }}>
-            <Avatar
-              alt={user.email}
-              src={user.avatar}
-              sx={{ mr: 2, background: "gray", color: "white" }}
-            />
-            <div>
-              <Typography>{`${user.firstName} ${user.lastName}`}</Typography>
-              <Typography>{user.email}</Typography>
-            </div>
-          </Box>
+          {groupAdmins.map((admin) => (
+            <Box
+              key={admin._id}
+              sx={{ display: "flex", alignItems: "center", my: 1 }}
+            >
+              <Avatar
+                alt={admin.email}
+                src={admin.avatar}
+                sx={{ mr: 2, background: "gray", color: "white" }}
+              />
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography>{`${admin.firstName} ${admin.lastName}`}</Typography>
+                <Typography>{admin.email}</Typography>
+              </Box>
+              <Box sx={{ ml: 2 }}>
+                <Typography variant="subtitle1" color="primary">
+                  Admin
+                </Typography>
+              </Box>
+              {user._id !== admin._id && (
+                <>
+                  <Button onClick={(e) => handleMenuOpen(e, true)}>
+                    <MoreVertIcon />
+                  </Button>
+                  <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl) && anchorElTitle === "admin"}
+                    onClose={handleMenuClose}
+                  >
+                    <MenuItem onClick={() => handleRemoveAdmin(admin)}>
+                      Remove Admin
+                    </MenuItem>
+                  </Menu>
+                </>
+              )}
+            </Box>
+          ))}
 
           {selectedContacts.map((contact) => (
             <Box
@@ -218,6 +262,18 @@ const CreateGroupModal = ({
               <Button onClick={() => deleteUser(contact._id)}>
                 <CloseIcon />
               </Button>
+              <Button onClick={(e) => handleMenuOpen(e, false)}>
+                <MoreVertIcon />
+              </Button>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl) && anchorElTitle === "user"}
+                onClose={handleMenuClose}
+              >
+                <MenuItem onClick={() => handleMakeAdmin(contact)}>
+                  Make Admin
+                </MenuItem>
+              </Menu>
             </Box>
           ))}
 
@@ -247,7 +303,7 @@ const CreateGroupModal = ({
             </Button>
           </Box>
         </form>
-      </Box>
+      </ModalBox>
     </Modal>
   );
 };

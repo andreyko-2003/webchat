@@ -1,23 +1,35 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
+  InputBase,
   CircularProgress,
   Avatar,
   Typography,
   Box,
-  TextField,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { styled } from "@mui/system";
 import axios from "axios";
-import { useAuth } from "../../../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 
-const SearchContainer = styled("div")({
+const SearchContainer = styled("div")(({ theme }) => ({
   position: "relative",
+  borderRadius: theme.shape.borderRadius * 3,
+  backgroundColor: theme.palette.primary.main,
+  border: `2px solid ${theme.palette.secondary.main}`,
+  "&:hover": {
+    backgroundColor: theme.palette.primary.main,
+  },
+  marginLeft: theme.spacing(2),
+  marginRight: theme.spacing(1),
   width: "100%",
+  [theme.breakpoints.up("sm")]: {
+    width: "300px",
+    marginLeft: 0,
+    marginRight: 0,
+  },
   display: "flex",
   alignItems: "center",
-  mt: 2,
-});
+}));
 
 const SearchIconContainer = styled("div")(({ theme }) => ({
   padding: theme.spacing(0, 2),
@@ -27,10 +39,10 @@ const SearchIconContainer = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  color: theme.palette.primary.main,
+  color: theme.palette.secondary.main,
 }));
 
-const SearchInputBase = styled(TextField)(({ theme }) => ({
+const SearchInputBase = styled(InputBase)(({ theme }) => ({
   padding: "2px",
   paddingLeft: `calc(1em + ${theme.spacing(4)})`,
   transition: theme.transitions.create("width"),
@@ -44,7 +56,7 @@ const LoadingSpinner = styled(CircularProgress)(({ theme }) => ({
   top: "50%",
   transform: "translateY(-50%)",
   marginRight: theme.spacing(2),
-  color: theme.palette.primary.main,
+  color: theme.palette.secondary.main,
   marginTop: "-10px",
 }));
 
@@ -59,7 +71,7 @@ const MenuItem = styled("div")({
   color: "#000000",
 });
 
-const AddUserSearchInput = ({ onSubmit, selectedContacts }) => {
+const SearchInput = ({ setCurrentChat, setUpdateChats }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -72,18 +84,15 @@ const AddUserSearchInput = ({ onSubmit, selectedContacts }) => {
       if (searchQuery.trim() !== "") {
         setLoading(true);
         try {
-          const response = await axios.get(`/user/${searchQuery}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          const filteredResults = response.data.filter(
-            (result) =>
-              !selectedContacts.some((contact) => contact._id === result._id)
+          const response = await axios.get(
+            `http://localhost:5000/user/${searchQuery}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
-
-          setSearchResults(filteredResults);
+          setSearchResults(response.data);
           setLoading(false);
           setIsOpen(true);
         } catch (error) {
@@ -98,7 +107,7 @@ const AddUserSearchInput = ({ onSubmit, selectedContacts }) => {
     }, 1000);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery, token, selectedContacts]);
+  }, [searchQuery, token]);
 
   const handleInputChange = (event) => {
     setLoading(!!event.target.value);
@@ -106,9 +115,21 @@ const AddUserSearchInput = ({ onSubmit, selectedContacts }) => {
     setSearchResults([]);
   };
 
-  const handleClick = (contact) => {
-    setIsOpen(false);
-    onSubmit(contact);
+  const createChat = async (userId) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/chat",
+        { userId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setIsOpen(false);
+      setCurrentChat(response.data);
+      setUpdateChats(response.data);
+    } catch (error) {}
   };
 
   return (
@@ -118,15 +139,12 @@ const AddUserSearchInput = ({ onSubmit, selectedContacts }) => {
       </SearchIconContainer>
 
       <SearchInputBase
-        autoComplete="off"
         placeholder="Search user…"
         inputProps={{ "aria-label": "search" }}
         onChange={handleInputChange}
         inputRef={inputRef}
       />
-
       {loading && <LoadingSpinner size={20} />}
-
       {isOpen && (
         <Box
           style={{
@@ -139,7 +157,7 @@ const AddUserSearchInput = ({ onSubmit, selectedContacts }) => {
         >
           {searchResults.length > 0
             ? searchResults.map((user) => (
-                <MenuItem key={user._id} onClick={() => handleClick(user)}>
+                <MenuItem key={user._id} onClick={() => createChat(user._id)}>
                   <Avatar
                     alt={`${user.firstName} ${user.lastName}`}
                     src={user.avatar}
@@ -167,4 +185,4 @@ const AddUserSearchInput = ({ onSubmit, selectedContacts }) => {
   );
 };
 
-export default AddUserSearchInput;
+export default SearchInput;

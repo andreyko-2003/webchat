@@ -38,14 +38,16 @@ const createChat = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 const getMyChats = async (req, res) => {
   try {
     const chats = await Chat.find({
-      users: { $elemMatch: { $eq: req.user._id } },
+      $or: [
+        { users: { $elemMatch: { $eq: req.user._id } } },
+        { groupAdmins: { $elemMatch: { $eq: req.user._id } } },
+      ],
     })
       .populate("users", "-password")
-      .populate("groupAdmin", "-password")
+      .populate("groupAdmins", "-password")
       .populate("latestMessage");
 
     if (!chats || chats.length === 0) {
@@ -65,17 +67,13 @@ const getMyChats = async (req, res) => {
 };
 
 const createGroupChat = async (req, res) => {
-  const { title, description, avatar, users } = req.body;
+  const { title, description, avatar, users, groupAdmins } = req.body;
 
   if (!users || !title) {
-    return res
-      .status(400)
-      .json({
-        error: "Invalid request parameters. Users and title are required.",
-      });
+    return res.status(400).json({
+      error: "Invalid request parameters. Users and title are required.",
+    });
   }
-
-  users.push(req.user);
 
   try {
     const groupChat = await Chat.create({
@@ -84,12 +82,12 @@ const createGroupChat = async (req, res) => {
       avatar: avatar,
       users: users,
       isGroupChat: true,
-      groupChat: req.user,
+      groupAdmins: groupAdmins,
     });
 
     const groupChatData = await Chat.findOne({ _id: groupChat._id })
       .populate("users", "-password")
-      .populate("groupAdmin", "-password");
+      .populate("groupAdmins", "-password");
 
     return res.status(200).json(groupChatData);
   } catch (error) {
@@ -97,73 +95,114 @@ const createGroupChat = async (req, res) => {
   }
 };
 
-const renameGroupChat = async (req, res) => {
-  const { chatId, chatName } = req.body;
+const updateGroupChat = async (req, res) => {
+  const { chatId, title, description, avatar, users, groupAdmins } = req.body;
 
   const updatedChat = await Chat.findByIdAndUpdate(
     chatId,
-    { chatName },
+    {
+      chatName: title,
+      chatDescription: description,
+      avatar,
+      users,
+      groupAdmins,
+    },
     { new: true }
   )
     .populate("users", "-password")
-    .populate("groupAdmin", "-password");
+    .populate("groupAdmins", "-password");
 
   if (!updatedChat) {
-    return res.status(404);
+    return res.status(404).send("Chat not found");
   } else {
     return res.json(updatedChat);
   }
 };
 
-const addUserToGroupChat = async (req, res) => {
-  const { chatId, userId } = req.body;
+const leaveGroupChat = async (req, res) => {
+  const { chatId } = req.body;
+  const userId = req.user._id;
 
-  const chat = await Chat.findByIdAndUpdate(
-    chatId,
-    {
-      $push: { users: userId },
-    },
-    {
-      new: true,
+  try {
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({ error: "Chat not found" });
     }
-  )
-    .populate("users", "-password")
-    .populate("groupAdmin", "-password");
 
-  if (!chat) {
-    return res.status(404);
-  } else {
-    return res.json(chat);
+    const isUserMember = chat.users.some((user) => user.equals(userId));
+    const isUserAdmin = chat.groupAdmins.some((admin) => admin.equals(userId));
+
+    if (!isUserMember && !isUserAdmin) {
+      return res
+        .status(403)
+        .json({ error: "User is not a member of the chat" });
+    }
+
+    if (isUserMember) {
+      chat.users.pull(userId);
+    }
+
+    if (isUserAdmin) {
+      chat.groupAdmins.pull(userId);
+    }
+
+    await chat.save();
+
+    return res.status(200).json({ message: "User left the chat successfully" });
+  } catch (error) {
+    console.error("Error leaving chat:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-const deleteUserFromGroupChat = async (req, res) => {
-  const { chatId, userId } = req.body;
+const deleteChat = async (req, res) => {
+  const { chatId } = req.params;
+  const userId = req.user._id;
 
-  const chat = await Chat.findByIdAndUpdate(
-    chatId,
-    {
-      $pull: { users: userId },
-    },
-    {
-      new: true,
+  try {
+    const chat = await Chat.findById(chatId);
+
+    if (!chat) {
+      return res.status(404).json({ error: "Chat not found" });
     }
-  )
-    .populate("users", "-password")
-    .populate("groupAdmin", "-password");
 
-  if (!chat) {
-    return res.status(404);
-  } else {
-    return res.json(chat);
+    const isGroupChat = chat.isGroupChat;
+    const isUserInChat = chat.users.some((user) => user.equals(userId));
+
+    if (!isUserInChat && !isGroupChat) {
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to delete this chat" });
+    }
+
+    if (isGroupChat && chat.groupAdmins.length > 0) {
+      const isAdmin = chat.groupAdmins.some((admin) => admin.equals(userId));
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "You do not have permission to delete this chat" });
+      }
+    }
+
+    await Chat.findByIdAndDelete(chatId);
+
+    return res
+      .status(200)
+      .json({ message: "Chat deleted successfully", _id: chatId });
+  } catch (error) {
+    console.error("Error deleting chat:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+module.exports = deleteChat;
 
 module.exports = {
   createChat,
   getMyChats,
   createGroupChat,
-  renameGroupChat,
-  addUserToGroupChat,
-  deleteUserFromGroupChat,
+  updateGroupChat,
+  leaveGroupChat,
+  deleteChat,
 };

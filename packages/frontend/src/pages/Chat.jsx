@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import Header from "../components/Header/Header";
-import { useAuth } from "../contexts/AuthContext";
 import { Box, CircularProgress, Grid, Typography } from "@mui/material";
-import Sidebar from "../components/Sidebar/Sidebar";
-import ChatBox from "../components/ChatBox/ChatBox";
+
 import { getContacts } from "../utils/contacts";
+import { useAuth } from "../contexts/AuthContext";
+import ChatBox from "../components/ChatBox/ChatBox";
+import Header from "../components/Header/Header";
+import Sidebar from "../components/Sidebar/Sidebar";
 
 function Chat() {
   const { user } = useAuth();
@@ -64,6 +65,7 @@ function Chat() {
                   user={user}
                   currentChat={currentChat}
                   setCurrentChat={setCurrentChat}
+                  setUpdateChats={setUpdateChats}
                 />
               ) : (
                 <Box

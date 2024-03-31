@@ -15,7 +15,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import PersonIcon from "@mui/icons-material/Person";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { useAuth } from "../../contexts/AuthContext";
-import SearchInput from "./SearchInput";
+import SearchInput from "../Inputs/SearchInput";
 import CreateGroupModal from "../Modals/Group/CreateGroupModal";
 
 const HeaderAppBar = styled(AppBar)({

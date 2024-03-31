@@ -9,8 +9,8 @@ import SignUp from "./pages/SignUp";
 
 import Chat from "./pages/Chat";
 
-import PrivateRoute from "./components/routes/PrivateRoute";
-import PublicRoute from "./components/routes/PublicRoute";
+import PrivateRoute from "./components/Routes/PrivateRoute";
+import PublicRoute from "./components/Routes/PublicRoute";
 
 import { AuthProvider } from "./contexts/AuthContext";
 

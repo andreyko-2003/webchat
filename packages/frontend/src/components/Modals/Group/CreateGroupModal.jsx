@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axios from "../../../utils/axios";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -42,7 +42,7 @@ const CreateGroupModal = ({
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:5000/chat/group",
+        "/chat/group",
         {
           ...data,
           groupAdmins: groupAdmins,

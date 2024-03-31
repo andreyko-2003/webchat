@@ -1,5 +1,5 @@
 import React from "react";
-import axios from "axios";
+import axios from "../../../utils/axios";
 import styled from "@emotion/styled";
 import { Avatar, Box, Button, Modal, Typography } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -29,14 +29,11 @@ const ChatInfoModal = ({
 
   const deleteChat = async () => {
     try {
-      const response = await axios.delete(
-        `http://localhost:5000/chat/${chat._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.delete(`/chat/${chat._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       chat._id === response.data._id && setCurrentChat({});
       setUpdateChats(response);
       close();

@@ -38,6 +38,7 @@ const createChat = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 const getMyChats = async (req, res) => {
   try {
     const chats = await Chat.find({

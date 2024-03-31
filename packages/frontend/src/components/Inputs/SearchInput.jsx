@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { styled } from "@mui/system";
-import axios from "axios";
+import axios from "../../utils/axios";
 import { useAuth } from "../../contexts/AuthContext";
 
 const SearchContainer = styled("div")(({ theme }) => ({
@@ -84,14 +84,11 @@ const SearchInput = ({ setCurrentChat, setUpdateChats }) => {
       if (searchQuery.trim() !== "") {
         setLoading(true);
         try {
-          const response = await axios.get(
-            `http://localhost:5000/user/${searchQuery}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          const response = await axios.get(`/user/${searchQuery}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           setSearchResults(response.data);
           setLoading(false);
           setIsOpen(true);
@@ -118,7 +115,7 @@ const SearchInput = ({ setCurrentChat, setUpdateChats }) => {
   const createChat = async (userId) => {
     try {
       const response = await axios.post(
-        "http://localhost:5000/chat",
+        "/chat",
         { userId },
         {
           headers: {

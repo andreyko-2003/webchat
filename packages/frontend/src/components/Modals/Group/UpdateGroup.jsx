@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "../../../utils/axios";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -55,7 +55,7 @@ const UpdateGroup = ({
     setIsLoading(true);
     try {
       const response = await axios.put(
-        "http://localhost:5000/chat/group",
+        "/chat/group",
         {
           ...data,
           chatId: currentGroup._id,

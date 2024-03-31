@@ -1,7 +1,7 @@
 import React from "react";
 import { Avatar, Modal, Typography, Button, Box } from "@mui/material";
 import GroupsIcon from "@mui/icons-material/Groups";
-import axios from "axios";
+import axios from "../../../utils/axios";
 import ModalBox from "../ModalBox";
 import { getChatInfo } from "../../../utils/chat";
 import styled from "@emotion/styled";
@@ -47,7 +47,7 @@ const GroupInfoModal = ({
   const leaveGroup = async () => {
     try {
       const response = await axios.put(
-        "http://localhost:5000/chat/group/leave",
+        "/chat/group/leave",
         { chatId: group._id },
         {
           headers: {
@@ -64,14 +64,11 @@ const GroupInfoModal = ({
 
   const deleteGroup = async () => {
     try {
-      const response = await axios.delete(
-        `http://localhost:5000/chat/${group._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.delete(`/chat/${group._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       group._id === response.data._id && setCurrentChat({});
       setUpdateChats(response);
       close();

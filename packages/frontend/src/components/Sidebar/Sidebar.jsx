@@ -7,7 +7,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Avatar from "@mui/material/Avatar";
 import { styled } from "@mui/system";
 import { useAuth } from "../../contexts/AuthContext";
-import axios from "axios";
+import axios from "../../utils/axios";
 import { getChatInfo } from "../../utils/chat";
 import GroupsIcon from "@mui/icons-material/Groups";
 
@@ -46,7 +46,7 @@ const Sidebar = ({
     const fetchChats = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:5000/chat", {
+        const response = await axios.get("/chat", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

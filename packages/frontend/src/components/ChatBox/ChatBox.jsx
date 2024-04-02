@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Box,
@@ -8,13 +8,23 @@ import {
   AppBar,
   Toolbar,
   Avatar,
+  CircularProgress,
 } from "@mui/material";
+import axios from "../../utils/axios";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import styled from "@emotion/styled";
 import GroupsIcon from "@mui/icons-material/Groups";
 import { getChatInfo } from "../../utils/chat";
 import GroupInfoModal from "../Modals/Group/GroupInfoModal";
 import ChatInfoModal from "../Modals/Chat/ChatInfoModal";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  groupMessagesByDate,
+  formatTime,
+  addNewMessageToGroupedMessagesByDate,
+} from "../../utils/datetime";
+
+import ScrollableFeed from "react-scrollable-feed";
 
 const ContactAppBar = styled(AppBar)(({ theme }) => ({
   position: "static",
@@ -29,9 +39,8 @@ const ChatBoxContainer = styled(Box)({
   flexDirection: "column",
 });
 
-const ChatContent = styled(Box)({
-  flex: 1,
-  overflowY: "scroll",
+const ChatContent = styled(ScrollableFeed)({
+  padding: "16px",
   "&::-webkit-scrollbar": {
     width: "8px",
   },
@@ -51,8 +60,12 @@ const ChatBox = ({
   setCurrentChat,
   setUpdateChats,
 }) => {
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [newMessage, setNewMessage] = useState("");
   const [openChatInfoModal, setOpenChatInfoModal] = useState(false);
   const [openGroupInfoModal, setOpenGroupInfoModal] = useState(false);
+  const { token } = useAuth();
 
   const handleGoBack = () => {
     setCurrentChat({});
@@ -64,6 +77,51 @@ const ChatBox = ({
     currentChat.isGroupChat
       ? setOpenGroupInfoModal(true)
       : setOpenChatInfoModal(true);
+  };
+  useEffect(() => {
+    const getMessages = async () => {
+      if (currentChat && currentChat._id) {
+        try {
+          setLoading(true);
+          const response = await axios.get(`/message/${currentChat._id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          setMessages(await groupMessagesByDate(response.data));
+          setLoading(false);
+        } catch (error) {}
+      }
+    };
+    getMessages();
+  }, [currentChat, token]);
+
+  const sendMessage = async (e) => {
+    if (e.key === "Enter" && newMessage) {
+      try {
+        const response = await axios.post(
+          "/message/",
+          {
+            chatId: currentChat._id,
+            content: newMessage,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setNewMessage(
+          addNewMessageToGroupedMessagesByDate(messages, response.data)
+        );
+        setNewMessage("");
+      } catch (error) {}
+    }
+  };
+
+  const typingHandler = (e) => {
+    setNewMessage(e.target.value);
   };
 
   return (
@@ -115,9 +173,92 @@ const ChatBox = ({
             </Box>
           </Toolbar>
         </ContactAppBar>
-        <ChatContent sx={{ padding: "16px" }}>
-          {/* Chat messages will be displayed here. */}
+
+        <ChatContent>
+          {loading ? (
+            <Box
+              sx={{
+                height: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : (
+            messages.map((daysMessages) => (
+              <Box key={daysMessages.date}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    textAlign: "center",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      width: "max-content",
+                      background: "#0002",
+                      borderRadius: 4,
+                      px: 2,
+                      py: 1,
+                      mb: "2px",
+                    }}
+                  >
+                    {daysMessages.date}
+                  </Typography>
+                </Box>
+                {daysMessages.messages.map((message) => (
+                  <Box
+                    key={message._id}
+                    sx={{
+                      display: "flex",
+                      justifyContent:
+                        message.sender._id === user._id
+                          ? "flex-end"
+                          : "flex-start",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: "max-content",
+                        p: 1.5,
+                        borderRadius: 2,
+                        mb: "2px",
+                        maxWidth: "70%",
+                        wordWrap: "break-word",
+                      }}
+                      bgcolor={
+                        message.sender._id === user._id
+                          ? "primary.main"
+                          : "secondary.main"
+                      }
+                      color={
+                        message.sender._id !== user._id
+                          ? "primary.main"
+                          : "secondary.main"
+                      }
+                    >
+                      <Box>
+                        <Typography variant="body1" sx={{ lineHeight: 1 }}>
+                          {message.text}
+                        </Typography>
+                        <Typography
+                          variant="overline"
+                          sx={{ lineHeight: 1, opacity: "50%" }}
+                        >
+                          {formatTime(message.createdAt)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            ))
+          )}
         </ChatContent>
+
         <Box
           sx={{
             borderTop: "1px solid #ccc",
@@ -129,10 +270,13 @@ const ChatBox = ({
           <TextField
             fullWidth
             variant="outlined"
-            label="Type your message"
-            // Add necessary event handlers and state management for sending messages
+            label="Type your message..."
+            autoComplete="off"
+            onKeyDown={sendMessage}
+            onChange={typingHandler}
+            value={newMessage}
           />
-          {/* You can add a send button here */}
+          {/* Add a send button here */}
         </Box>
       </ChatBoxContainer>
     </>

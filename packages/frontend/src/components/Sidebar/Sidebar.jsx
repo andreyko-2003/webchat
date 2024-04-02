@@ -102,14 +102,18 @@ const Sidebar = ({
                       >
                         {chat.isGroupChat && !chat.avatar && <GroupsIcon />}
                       </Avatar>
-                      <div>
+                      <Box>
                         <Typography variant="body1">
                           {chatInfo.title}
                         </Typography>
-                        <Typography variant="body2">
-                          {chat.latestMessage}
-                        </Typography>
-                      </div>
+                        {chat.latestMessage && chat.latestMessage.text && (
+                          <Typography variant="body2">
+                            {chat.latestMessage.text.length > 20
+                              ? `${chat.latestMessage.text.substr(0, 20)}...`
+                              : chat.latestMessage.text}
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
                   </ListItem>
                 </React.Fragment>

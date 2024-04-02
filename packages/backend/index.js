@@ -1,9 +1,11 @@
-const express = require("express");
-const cors = require("cors");
 const bodyParser = require("body-parser");
+const cors = require("cors");
+const express = require("express");
+
 const connectDB = require("./configs/bd");
 
 const userRouter = require("./routes/userRoutes");
+const messageRouter = require("./routes/messageRoutes");
 const chatRouter = require("./routes/chatRoutes");
 
 connectDB();
@@ -16,6 +18,7 @@ app.use(bodyParser.json());
 
 app.use("/user", userRouter);
 app.use("/chat", chatRouter);
+app.use("/message", messageRouter);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);

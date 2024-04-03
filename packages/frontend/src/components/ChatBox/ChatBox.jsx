@@ -25,6 +25,7 @@ import {
 } from "../../utils/datetime";
 
 import ScrollableFeed from "react-scrollable-feed";
+import GroupChatMessage from "./GroupChatMessage";
 
 const ContactAppBar = styled(AppBar)(({ theme }) => ({
   position: "static",
@@ -209,51 +210,61 @@ const ChatBox = ({
                     {daysMessages.date}
                   </Typography>
                 </Box>
-                {daysMessages.messages.map((message) => (
-                  <Box
-                    key={message._id}
-                    sx={{
-                      display: "flex",
-                      justifyContent:
-                        message.sender._id === user._id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: "max-content",
-                        p: 1.5,
-                        borderRadius: 2,
-                        mb: "2px",
-                        maxWidth: "70%",
-                        wordWrap: "break-word",
-                      }}
-                      bgcolor={
-                        message.sender._id === user._id
-                          ? "primary.main"
-                          : "secondary.main"
-                      }
-                      color={
-                        message.sender._id !== user._id
-                          ? "primary.main"
-                          : "secondary.main"
-                      }
-                    >
-                      <Box>
-                        <Typography variant="body1" sx={{ lineHeight: 1 }}>
-                          {message.text}
-                        </Typography>
-                        <Typography
-                          variant="overline"
-                          sx={{ lineHeight: 1, opacity: "50%" }}
+                {currentChat.isGroupChat
+                  ? daysMessages.messages.map((message, i) => (
+                      <GroupChatMessage
+                        key={message._id}
+                        message={message}
+                        user={user}
+                        messages={daysMessages.messages}
+                        index={i}
+                      />
+                    ))
+                  : daysMessages.messages.map((message) => (
+                      <Box
+                        key={message._id}
+                        sx={{
+                          display: "flex",
+                          justifyContent:
+                            message.sender._id === user._id
+                              ? "flex-end"
+                              : "flex-start",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: "max-content",
+                            p: 1.5,
+                            borderRadius: 2,
+                            mb: "2px",
+                            maxWidth: "70%",
+                            wordWrap: "break-word",
+                          }}
+                          bgcolor={
+                            message.sender._id === user._id
+                              ? "primary.main"
+                              : "secondary.main"
+                          }
+                          color={
+                            message.sender._id !== user._id
+                              ? "primary.main"
+                              : "secondary.main"
+                          }
                         >
-                          {formatTime(message.createdAt)}
-                        </Typography>
+                          <Box>
+                            <Typography variant="body1" sx={{ lineHeight: 1 }}>
+                              {message.text}
+                            </Typography>
+                            <Typography
+                              variant="overline"
+                              sx={{ lineHeight: 1, opacity: "50%" }}
+                            >
+                              {formatTime(message.createdAt)}
+                            </Typography>
+                          </Box>
+                        </Box>
                       </Box>
-                    </Box>
-                  </Box>
-                ))}
+                    ))}
               </Box>
             ))
           )}

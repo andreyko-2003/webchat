@@ -66,12 +66,16 @@ const ChatBox = ({
   const [openChatInfoModal, setOpenChatInfoModal] = useState(false);
   const [openGroupInfoModal, setOpenGroupInfoModal] = useState(false);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const { token } = useAuth();
 
   useEffect(() => {
     socket = io("http://localhost:5000");
     socket.emit("setup", user);
-    socket.on("connection", () => setSocketConnected(true));
+    socket.on("connected", () => setSocketConnected(true));
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stopTyping", () => setIsTyping(false));
   }, []);
 
   useEffect(() => {
@@ -116,6 +120,7 @@ const ChatBox = ({
   const sendMessage = async (e) => {
     if (e.key === "Enter" && newMessage) {
       try {
+        socket.emit("stopTyping", currentChat._id);
         const response = await axios.post(
           "/message/",
           {
@@ -130,7 +135,7 @@ const ChatBox = ({
         );
         socket.emit("send", response.data);
         setMessages((prevMessages) => [...prevMessages, response.data]);
-
+        setUpdateChats(response.data);
         setNewMessage("");
       } catch (error) {}
     }
@@ -138,6 +143,26 @@ const ChatBox = ({
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
+
+    if (!socketConnected) return;
+
+    if (!typing) {
+      setTyping(true);
+      socket.emit("typing", currentChat._id);
+    }
+
+    let lastTypingTime = new Date().getTime();
+    var timerLength = 1500;
+
+    setTimeout(() => {
+      var timeNow = new Date().getTime();
+      var timeDiff = timeNow - lastTypingTime;
+
+      if (timeDiff >= timerLength && typing) {
+        socket.emit("stopTyping", currentChat._id);
+        setTyping(false);
+      }
+    }, timerLength);
   };
 
   const handleGoBack = () => {
@@ -186,6 +211,9 @@ const ChatBox = ({
 
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="h6">{chat.title}</Typography>
+              <Typography variant="body1">
+                {isTyping ? "Typing..." : "Status"}
+              </Typography>
             </Box>
             <Box>
               <Avatar

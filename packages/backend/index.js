@@ -32,8 +32,6 @@ const io = require("socket.io")(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("Connected to socket.io");
-
   socket.on("setup", (userData) => {
     socket.join(userData._id);
     socket.emit("connected");
@@ -42,6 +40,9 @@ io.on("connection", (socket) => {
   socket.on("join", (room) => {
     socket.join(room);
   });
+
+  socket.on("typing", (room) => socket.in(room).emit("typing"));
+  socket.on("stopTyping", (room) => socket.in(room).emit("stopTyping"));
 
   socket.on("send", (message) => {
     const chat = message.chat;
@@ -52,5 +53,9 @@ io.on("connection", (socket) => {
       if (user._id == message.sender._id) return;
       socket.in(user._id).emit("recieved", message);
     });
+  });
+
+  socket.off("setup", () => {
+    socket.leave(userData._id);
   });
 });

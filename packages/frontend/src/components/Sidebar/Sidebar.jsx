@@ -45,7 +45,7 @@ const Sidebar = ({
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        setLoading(true);
+        if (!chats) setLoading(true);
         const response = await axios.get("/chat", {
           headers: {
             Authorization: `Bearer ${token}`,

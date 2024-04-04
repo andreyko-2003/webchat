@@ -41,7 +41,7 @@ const createChat = async (req, res) => {
 
 const getMyChats = async (req, res) => {
   try {
-    const chats = await Chat.find({
+    let chats = await Chat.find({
       $or: [
         { users: { $elemMatch: { $eq: req.user._id } } },
         { groupAdmins: { $elemMatch: { $eq: req.user._id } } },
@@ -49,15 +49,22 @@ const getMyChats = async (req, res) => {
     })
       .populate("users", "-password")
       .populate("groupAdmins", "-password")
-      .populate("latestMessage");
+      .populate("latestMessage")
+      .sort({ "latestMessage.createdAt": -1, createdAt: -1 });
 
     if (!chats || chats.length === 0) {
       return res.json([]);
     }
 
-    const results = await User.populate(chats, {
+    let results = await User.populate(chats, {
       path: "latestMessage.sender",
       select: "firstName lastName avatar email",
+    });
+
+    results = results.sort((a, b) => {
+      const dateA = a.latestMessage ? a.latestMessage.createdAt : a.createdAt;
+      const dateB = b.latestMessage ? b.latestMessage.createdAt : b.createdAt;
+      return new Date(dateB) - new Date(dateA);
     });
 
     return res.json(results);

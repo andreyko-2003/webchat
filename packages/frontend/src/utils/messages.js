@@ -15,3 +15,14 @@ export const isLastMessage = (messages, i) => {
       messages[i + 1].sender._id !== messages[i].sender._id)
   );
 };
+
+export const isNewDayMessage = (messages, i) => {
+  if (i === 0) {
+    return true;
+  }
+
+  const prevMessageDate = new Date(messages[i - 1].createdAt).getDate();
+  const currentMessageDate = new Date(messages[i].createdAt).getDate();
+
+  return prevMessageDate !== currentMessageDate;
+};

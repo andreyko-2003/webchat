@@ -20,6 +20,37 @@ app.use("/user", userRouter);
 app.use("/chat", chatRouter);
 app.use("/message", messageRouter);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+});
+
+const io = require("socket.io")(server, {
+  pingTimeout: 60000,
+  cors: {
+    origin: "http://localhost:3000",
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("Connected to socket.io");
+
+  socket.on("setup", (userData) => {
+    socket.join(userData._id);
+    socket.emit("connected");
+  });
+
+  socket.on("join", (room) => {
+    socket.join(room);
+  });
+
+  socket.on("send", (message) => {
+    const chat = message.chat;
+
+    if (!chat.users) return console.log("No chat users");
+
+    chat.users.forEach((user) => {
+      if (user._id == message.sender._id) return;
+      socket.in(user._id).emit("recieved", message);
+    });
+  });
 });

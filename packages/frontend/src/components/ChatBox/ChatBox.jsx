@@ -18,14 +18,11 @@ import { getChatInfo } from "../../utils/chat";
 import GroupInfoModal from "../Modals/Group/GroupInfoModal";
 import ChatInfoModal from "../Modals/Chat/ChatInfoModal";
 import { useAuth } from "../../contexts/AuthContext";
-import {
-  groupMessagesByDate,
-  formatTime,
-  addNewMessageToGroupedMessagesByDate,
-} from "../../utils/datetime";
-
+import { formatDate, formatTime } from "../../utils/datetime";
+import io from "socket.io-client";
 import ScrollableFeed from "react-scrollable-feed";
 import GroupChatMessage from "./GroupChatMessage";
+import { isNewDayMessage } from "../../utils/messages";
 
 const ContactAppBar = styled(AppBar)(({ theme }) => ({
   position: "static",
@@ -54,6 +51,8 @@ const ChatContent = styled(ScrollableFeed)({
   },
 });
 
+var socket, selectedChatCompare;
+
 const ChatBox = ({
   isSmallScreen,
   user,
@@ -66,19 +65,15 @@ const ChatBox = ({
   const [newMessage, setNewMessage] = useState("");
   const [openChatInfoModal, setOpenChatInfoModal] = useState(false);
   const [openGroupInfoModal, setOpenGroupInfoModal] = useState(false);
+  const [socketConnected, setSocketConnected] = useState(false);
   const { token } = useAuth();
 
-  const handleGoBack = () => {
-    setCurrentChat({});
-  };
+  useEffect(() => {
+    socket = io("http://localhost:5000");
+    socket.emit("setup", user);
+    socket.on("connection", () => setSocketConnected(true));
+  }, []);
 
-  const chat = getChatInfo(currentChat, user);
-
-  const openModal = () => {
-    currentChat.isGroupChat
-      ? setOpenGroupInfoModal(true)
-      : setOpenChatInfoModal(true);
-  };
   useEffect(() => {
     const getMessages = async () => {
       if (currentChat && currentChat._id) {
@@ -90,13 +85,33 @@ const ChatBox = ({
             },
           });
 
-          setMessages(await groupMessagesByDate(response.data));
+          setMessages(response.data);
           setLoading(false);
+
+          socket.emit("join", currentChat._id);
         } catch (error) {}
       }
     };
     getMessages();
+    selectedChatCompare = currentChat;
   }, [currentChat, token]);
+
+  useEffect(() => {
+    socket.on("recieved", (message) => {
+      if (
+        !selectedChatCompare ||
+        selectedChatCompare._id !== message.chat._id
+      ) {
+        // TODO
+      } else {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      }
+    });
+
+    return () => {
+      socket.off("recieved");
+    };
+  }, []);
 
   const sendMessage = async (e) => {
     if (e.key === "Enter" && newMessage) {
@@ -113,9 +128,9 @@ const ChatBox = ({
             },
           }
         );
-        setNewMessage(
-          addNewMessageToGroupedMessagesByDate(messages, response.data)
-        );
+        socket.emit("send", response.data);
+        setMessages((prevMessages) => [...prevMessages, response.data]);
+
         setNewMessage("");
       } catch (error) {}
     }
@@ -123,6 +138,18 @@ const ChatBox = ({
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
+  };
+
+  const handleGoBack = () => {
+    setCurrentChat({});
+  };
+
+  const chat = getChatInfo(currentChat, user);
+
+  const openModal = () => {
+    currentChat.isGroupChat
+      ? setOpenGroupInfoModal(true)
+      : setOpenChatInfoModal(true);
   };
 
   return (
@@ -188,83 +215,83 @@ const ChatBox = ({
               <CircularProgress />
             </Box>
           ) : (
-            messages.map((daysMessages) => (
-              <Box key={daysMessages.date}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    textAlign: "center",
-                  }}
-                >
-                  <Typography
+            messages.map((message, i) => (
+              <Box key={i}>
+                {isNewDayMessage(messages, i) && (
+                  <Box
                     sx={{
-                      width: "max-content",
-                      background: "#0002",
-                      borderRadius: 4,
-                      px: 2,
-                      py: 1,
-                      mb: "2px",
+                      display: "flex",
+                      justifyContent: "center",
+                      textAlign: "center",
                     }}
                   >
-                    {daysMessages.date}
-                  </Typography>
-                </Box>
-                {currentChat.isGroupChat
-                  ? daysMessages.messages.map((message, i) => (
-                      <GroupChatMessage
-                        key={message._id}
-                        message={message}
-                        user={user}
-                        messages={daysMessages.messages}
-                        index={i}
-                      />
-                    ))
-                  : daysMessages.messages.map((message) => (
-                      <Box
-                        key={message._id}
-                        sx={{
-                          display: "flex",
-                          justifyContent:
-                            message.sender._id === user._id
-                              ? "flex-end"
-                              : "flex-start",
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: "max-content",
-                            p: 1.5,
-                            borderRadius: 2,
-                            mb: "2px",
-                            maxWidth: "70%",
-                            wordWrap: "break-word",
-                          }}
-                          bgcolor={
-                            message.sender._id === user._id
-                              ? "primary.main"
-                              : "secondary.main"
-                          }
-                          color={
-                            message.sender._id !== user._id
-                              ? "primary.main"
-                              : "secondary.main"
-                          }
+                    <Typography
+                      sx={{
+                        width: "max-content",
+                        background: "#0002",
+                        borderRadius: 4,
+                        px: 2,
+                        py: 1,
+                        mb: "2px",
+                      }}
+                    >
+                      {formatDate(message.createdAt)}
+                    </Typography>
+                  </Box>
+                )}
+                {currentChat.isGroupChat ? (
+                  <GroupChatMessage
+                    key={message._id}
+                    message={message}
+                    user={user}
+                    messages={messages}
+                    index={i}
+                  />
+                ) : (
+                  <Box
+                    key={message._id}
+                    sx={{
+                      display: "flex",
+                      justifyContent:
+                        message.sender._id === user._id
+                          ? "flex-end"
+                          : "flex-start",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: "max-content",
+                        p: 1.5,
+                        borderRadius: 2,
+                        mb: "2px",
+                        maxWidth: "70%",
+                        wordWrap: "break-word",
+                      }}
+                      bgcolor={
+                        message.sender._id === user._id
+                          ? "primary.main"
+                          : "secondary.main"
+                      }
+                      color={
+                        message.sender._id !== user._id
+                          ? "primary.main"
+                          : "secondary.main"
+                      }
+                    >
+                      <Box>
+                        <Typography variant="body1" sx={{ lineHeight: 1 }}>
+                          {message.text}
+                        </Typography>
+                        <Typography
+                          variant="overline"
+                          sx={{ lineHeight: 1, opacity: "50%" }}
                         >
-                          <Box>
-                            <Typography variant="body1" sx={{ lineHeight: 1 }}>
-                              {message.text}
-                            </Typography>
-                            <Typography
-                              variant="overline"
-                              sx={{ lineHeight: 1, opacity: "50%" }}
-                            >
-                              {formatTime(message.createdAt)}
-                            </Typography>
-                          </Box>
-                        </Box>
+                          {formatTime(message.createdAt)}
+                        </Typography>
                       </Box>
-                    ))}
+                    </Box>
+                  </Box>
+                )}
               </Box>
             ))
           )}

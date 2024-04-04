@@ -16,14 +16,22 @@ const sendMessage = async (req, res) => {
       chat: chatId,
     });
 
-    await newMessage.populate("sender", "avatar firstName lastName");
+    const populatedMessage = await Message.findById(newMessage._id)
+      .populate("sender", "avatar firstName lastName")
+      .lean();
 
-    const populatedMessage = await User.populate(newMessage, {
-      path: "chat.users",
-      select: "firstName lastName email avatar",
-    });
+    const chat = await Chat.findById(chatId).lean();
 
-    await Chat.findByIdAndUpdate(chatId, { latestMessage: populatedMessage });
+    if (chat && chat.users) {
+      populatedMessage.chat = {
+        _id: chat._id,
+        users: chat.users.map((user) => ({
+          _id: user._id,
+        })),
+      };
+    }
+
+    await Chat.findByIdAndUpdate(chatId, { latestMessage: newMessage._id });
 
     return res.status(200).json(populatedMessage);
   } catch (error) {

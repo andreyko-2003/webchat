@@ -28,6 +28,10 @@ const sendMessage = async (req, res) => {
         users: chat.users.map((user) => ({
           _id: user._id,
         })),
+        groupAdmins: chat.groupAdmins.map((admin) => ({
+          _id: admin._id,
+        })),
+        isGroupChat: chat.isGroupChat,
       };
     }
 

@@ -215,9 +215,11 @@ const ChatBox = ({
 
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="h6">{chat.title}</Typography>
-              <Typography variant="body1">
-                {isTyping ? "Typing..." : userStatus}
-              </Typography>
+              {!currentChat.isGroupChat && (
+                <Typography variant="body1">
+                  {isTyping ? "Typing..." : userStatus}
+                </Typography>
+              )}
             </Box>
             <Box>
               <Avatar

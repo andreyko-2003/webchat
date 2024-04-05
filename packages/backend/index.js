@@ -54,9 +54,13 @@ io.on("connection", (socket) => {
   socket.on("send", (message) => {
     const chat = message.chat;
 
-    if (!chat.users) return console.log("No chat users");
+    const users = chat.isGroupChat
+      ? chat.groupAdmins.concat(chat.users)
+      : chat.users;
 
-    chat.users.forEach((user) => {
+    if (!users) return console.log("No chat users");
+
+    users.forEach((user) => {
       if (user._id == message.sender._id) return;
       socket.in(user._id).emit("recieved", message);
     });

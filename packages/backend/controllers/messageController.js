@@ -68,6 +68,14 @@ const updateMessage = async (req, res) => {
   }
 };
 
+const updateMessageStatus = async (messageId, status) => {
+  try {
+    await Message.findByIdAndUpdate(messageId, { status });
+  } catch (error) {
+    console.error("Error updating message status to 'sent':", error);
+  }
+};
+
 const getAllMessages = async (req, res) => {
   try {
     const messages = await Message.find({ chat: req.params.chatId })
@@ -80,4 +88,9 @@ const getAllMessages = async (req, res) => {
   }
 };
 
-module.exports = { sendMessage, updateMessage, getAllMessages };
+module.exports = {
+  sendMessage,
+  updateMessage,
+  updateMessageStatus,
+  getAllMessages,
+};

@@ -1,9 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Box, Typography, Avatar } from "@mui/material";
 import { isLastMessage, isSameSender } from "../../utils/messages";
 import { formatTime } from "../../utils/datetime";
+import { useSocket } from "../../contexts/SocketContext";
+import MessageStatus from "../MessageStatus/MessageStatus";
 
 const GroupChatMessage = ({ message, user, messages, index }) => {
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (message.sender._id !== user._id && message.status !== "read")
+      socket.emit("markAsRead", message._id);
+  }, [socket]);
+
   const showAvatar =
     message.sender._id !== user._id && isLastMessage(messages, index);
   const showUserName =
@@ -58,19 +67,31 @@ const GroupChatMessage = ({ message, user, messages, index }) => {
         >
           {message.text}
         </Typography>
-        <Typography
-          variant="overline"
+        <Box
           sx={{
-            lineHeight: 1,
-            opacity: "50%",
-            mt: 0.5,
             display: "flex",
-            justifyContent:
-              message.sender._id !== user._id ? "flex-end" : "flex-start",
+            justifyContent: "space-between",
+            alignItems: "end",
+            mt: "2px",
           }}
         >
-          {formatTime(message.createdAt)}
-        </Typography>
+          <Typography
+            variant="overline"
+            sx={{
+              lineHeight: 1,
+              opacity: "50%",
+              mt: 0.5,
+              display: "flex",
+              justifyContent:
+                message.sender._id !== user._id ? "flex-end" : "flex-start",
+            }}
+          >
+            {formatTime(message.createdAt)}
+          </Typography>
+          {message.sender._id === user._id && (
+            <MessageStatus status={message.status} />
+          )}
+        </Box>
       </Box>
     </Box>
   );

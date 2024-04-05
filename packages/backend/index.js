@@ -8,6 +8,11 @@ const userRouter = require("./routes/userRoutes");
 const messageRouter = require("./routes/messageRoutes");
 const chatRouter = require("./routes/chatRoutes");
 const { updateUserStatus } = require("./controllers/userController");
+const Message = require("./models/messageModel");
+const {
+  updateMessage,
+  updateMessageStatus,
+} = require("./controllers/messageController");
 
 connectDB();
 const app = express();
@@ -64,6 +69,16 @@ io.on("connection", (socket) => {
       if (user._id == message.sender._id) return;
       socket.in(user._id).emit("recieved", message);
     });
+  });
+
+  socket.on("markAsSent", async (messageId) => {
+    updateMessageStatus(messageId, "sent");
+    io.emit("messageStatusUpdate", { messageId, status: "sent" });
+  });
+
+  socket.on("markAsRead", async (messageId) => {
+    updateMessageStatus(messageId, "read");
+    io.emit("messageStatusUpdate", { messageId, status: "read" });
   });
 
   socket.on("disconnect", () => {

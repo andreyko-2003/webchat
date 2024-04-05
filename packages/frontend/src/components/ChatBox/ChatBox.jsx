@@ -24,6 +24,7 @@ import GroupChatMessage from "./GroupChatMessage";
 import { isNewDayMessage } from "../../utils/messages";
 import { useSocket } from "../../contexts/SocketContext";
 import { getContact } from "../../utils/contacts";
+import SingleChatMessage from "./SingleChatMessage";
 
 const ContactAppBar = styled(AppBar)(({ theme }) => ({
   position: "static",
@@ -105,6 +106,20 @@ const ChatBox = ({
   }, [currentChat, token, socket]);
 
   useEffect(() => {
+    socket.on("messageStatusUpdate", ({ messageId, status }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((message) =>
+          message._id === messageId ? { ...message, status } : message
+        )
+      );
+    });
+
+    return () => {
+      socket.off("messageStatusUpdate");
+    };
+  }, [messages, socket]);
+
+  useEffect(() => {
     socket.on("recieved", (message) => {
       if (
         !selectedChatCompare ||
@@ -138,6 +153,7 @@ const ChatBox = ({
           }
         );
         socket.emit("send", response.data);
+        socket.emit("markAsSent", response.data._id);
         setMessages((prevMessages) => [...prevMessages, response.data]);
         setUpdateChats(response.data);
         setNewMessage("");
@@ -282,49 +298,7 @@ const ChatBox = ({
                     index={i}
                   />
                 ) : (
-                  <Box
-                    key={message._id}
-                    sx={{
-                      display: "flex",
-                      justifyContent:
-                        message.sender._id === user._id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: "max-content",
-                        p: 1.5,
-                        borderRadius: 2,
-                        mb: "2px",
-                        maxWidth: "70%",
-                        wordWrap: "break-word",
-                      }}
-                      bgcolor={
-                        message.sender._id === user._id
-                          ? "primary.main"
-                          : "secondary.main"
-                      }
-                      color={
-                        message.sender._id !== user._id
-                          ? "primary.main"
-                          : "secondary.main"
-                      }
-                    >
-                      <Box>
-                        <Typography variant="body1" sx={{ lineHeight: 1 }}>
-                          {message.text}
-                        </Typography>
-                        <Typography
-                          variant="overline"
-                          sx={{ lineHeight: 1, opacity: "50%" }}
-                        >
-                          {formatTime(message.createdAt)}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
+                  <SingleChatMessage message={message} user={user} />
                 )}
               </Box>
             ))

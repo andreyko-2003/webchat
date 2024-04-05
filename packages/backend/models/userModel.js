@@ -7,6 +7,8 @@ const userModel = mongoose.Schema(
     email: { type: String, trim: true, required: true, unique: true },
     password: { type: String, required: true },
     avatar: { type: String },
+    status: { type: String, enum: ["online", "offline"], default: "offline" },
+    latestActivity: { type: Date },
   },
   { timestamps: true }
 );

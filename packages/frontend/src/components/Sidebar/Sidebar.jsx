@@ -59,7 +59,7 @@ const Sidebar = ({
       }
     };
     fetchChats();
-  }, [token, updateChats, setChats]);
+  }, [token, updateChats, chats, setChats]);
 
   return (
     <StyledSidebar>

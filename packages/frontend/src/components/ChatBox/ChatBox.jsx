@@ -19,10 +19,10 @@ import GroupInfoModal from "../Modals/Group/GroupInfoModal";
 import ChatInfoModal from "../Modals/Chat/ChatInfoModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { formatDate, formatTime } from "../../utils/datetime";
-import io from "socket.io-client";
 import ScrollableFeed from "react-scrollable-feed";
 import GroupChatMessage from "./GroupChatMessage";
 import { isNewDayMessage } from "../../utils/messages";
+import { useSocket } from "../../contexts/SocketContext";
 
 const ContactAppBar = styled(AppBar)(({ theme }) => ({
   position: "static",
@@ -51,7 +51,7 @@ const ChatContent = styled(ScrollableFeed)({
   },
 });
 
-var socket, selectedChatCompare;
+var selectedChatCompare;
 
 const ChatBox = ({
   isSmallScreen,
@@ -65,18 +65,15 @@ const ChatBox = ({
   const [newMessage, setNewMessage] = useState("");
   const [openChatInfoModal, setOpenChatInfoModal] = useState(false);
   const [openGroupInfoModal, setOpenGroupInfoModal] = useState(false);
-  const [socketConnected, setSocketConnected] = useState(false);
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const { token } = useAuth();
+  const { socket, socketConnected } = useSocket();
 
   useEffect(() => {
-    socket = io("http://localhost:5000");
-    socket.emit("setup", user);
-    socket.on("connected", () => setSocketConnected(true));
     socket.on("typing", () => setIsTyping(true));
     socket.on("stopTyping", () => setIsTyping(false));
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     const getMessages = async () => {
@@ -98,7 +95,7 @@ const ChatBox = ({
     };
     getMessages();
     selectedChatCompare = currentChat;
-  }, [currentChat, token]);
+  }, [currentChat, token, socket]);
 
   useEffect(() => {
     socket.on("recieved", (message) => {
@@ -115,7 +112,7 @@ const ChatBox = ({
     return () => {
       socket.off("recieved");
     };
-  }, []);
+  }, [socket]);
 
   const sendMessage = async (e) => {
     if (e.key === "Enter" && newMessage) {

@@ -23,6 +23,7 @@ import ScrollableFeed from "react-scrollable-feed";
 import GroupChatMessage from "./GroupChatMessage";
 import { isNewDayMessage } from "../../utils/messages";
 import { useSocket } from "../../contexts/SocketContext";
+import { getContact } from "../../utils/contacts";
 
 const ContactAppBar = styled(AppBar)(({ theme }) => ({
   position: "static",
@@ -67,13 +68,19 @@ const ChatBox = ({
   const [openGroupInfoModal, setOpenGroupInfoModal] = useState(false);
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [userStatus, setUserStatus] = useState("Offline");
   const { token } = useAuth();
-  const { socket, socketConnected } = useSocket();
+  const { socket, socketConnected, usersStatuses, getUserStatus } = useSocket();
 
   useEffect(() => {
     socket.on("typing", () => setIsTyping(true));
     socket.on("stopTyping", () => setIsTyping(false));
   }, [socket]);
+
+  useEffect(() => {
+    const userId = getContact(currentChat, user)._id;
+    setUserStatus(getUserStatus(userId));
+  }, [usersStatuses, currentChat, getUserStatus, user]);
 
   useEffect(() => {
     const getMessages = async () => {
@@ -209,7 +216,7 @@ const ChatBox = ({
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="h6">{chat.title}</Typography>
               <Typography variant="body1">
-                {isTyping ? "Typing..." : "Status"}
+                {isTyping ? "Typing..." : userStatus}
               </Typography>
             </Box>
             <Box>

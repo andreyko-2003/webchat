@@ -7,6 +7,7 @@ const connectDB = require("./configs/bd");
 const userRouter = require("./routes/userRoutes");
 const messageRouter = require("./routes/messageRoutes");
 const chatRouter = require("./routes/chatRoutes");
+const { updateUserStatus } = require("./controllers/userController");
 
 connectDB();
 const app = express();
@@ -31,10 +32,16 @@ const io = require("socket.io")(server, {
   },
 });
 
+const userStatuses = {};
+
 io.on("connection", (socket) => {
   socket.on("setup", (userData) => {
     socket.join(userData._id);
     socket.emit("connected");
+    socket.userId = userData._id;
+    updateUserStatus(userData._id, "online");
+    userStatuses[userData._id] = { status: "online" };
+    io.emit("userStatus", userStatuses);
   });
 
   socket.on("join", (room) => {
@@ -53,6 +60,21 @@ io.on("connection", (socket) => {
       if (user._id == message.sender._id) return;
       socket.in(user._id).emit("recieved", message);
     });
+  });
+
+  socket.on("disconnect", () => {
+    const userId = socket.userId;
+    if (userId) {
+      updateUserStatus(userId, "offline");
+      userStatuses[userId] = { status: "offline", latestActivity: new Date() };
+      io.emit("userStatus", userStatuses);
+    }
+  });
+
+  socket.on("logout", (userId) => {
+    updateUserStatus(userId, "offline");
+    userStatuses[userId] = { status: "offline", latestActivity: new Date() };
+    io.emit("userStatus", userStatuses);
   });
 
   socket.off("setup", () => {

@@ -17,6 +17,7 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { useAuth } from "../../contexts/AuthContext";
 import SearchInput from "../Inputs/SearchInput";
 import CreateGroupModal from "../Modals/Group/CreateGroupModal";
+import { useSocket } from "../../contexts/SocketContext";
 
 const HeaderAppBar = styled(AppBar)({
   zIndex: (theme) => theme.zIndex.drawer + 1,
@@ -52,6 +53,7 @@ const MenuItemWrapper = styled(MenuItem)(({ theme }) => ({
 const Header = ({ user, setCurrentChat, setUpdateChats, contacts }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const { socket } = useSocket();
   const { logout } = useAuth();
 
   const handleMenuOpen = (event) => {
@@ -65,6 +67,7 @@ const Header = ({ user, setCurrentChat, setUpdateChats, contacts }) => {
   const handleLogout = () => {
     logout();
     handleMenuClose();
+    socket.emit("logout", user._id);
   };
 
   const openModal = () => {

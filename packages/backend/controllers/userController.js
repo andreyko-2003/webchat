@@ -83,4 +83,14 @@ const getMe = async (req, res) => {
   return res.json(user);
 };
 
-module.exports = { signUp, signIn, search, getMe };
+const updateUserStatus = async (userId, status) => {
+  if (status === "online")
+    await User.findByIdAndUpdate(userId, { status: status });
+  else if (status === "offline")
+    await User.findByIdAndUpdate(userId, {
+      status: status,
+      latestActivity: new Date(),
+    });
+};
+
+module.exports = { signUp, signIn, search, getMe, updateUserStatus };

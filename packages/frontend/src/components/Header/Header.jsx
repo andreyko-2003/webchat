@@ -12,12 +12,12 @@ import {
 import { styled } from "@mui/system";
 import AddIcon from "@mui/icons-material/Add";
 import SettingsIcon from "@mui/icons-material/Settings";
-import PersonIcon from "@mui/icons-material/Person";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import { useAuth } from "../../contexts/AuthContext";
 import SearchInput from "../Inputs/SearchInput";
 import CreateGroupModal from "../Modals/Group/CreateGroupModal";
 import { useSocket } from "../../contexts/SocketContext";
+import SettingsModal from "../Modals/Settings/SettingsModal";
 
 const HeaderAppBar = styled(AppBar)({
   zIndex: (theme) => theme.zIndex.drawer + 1,
@@ -52,7 +52,8 @@ const MenuItemWrapper = styled(MenuItem)(({ theme }) => ({
 
 const Header = ({ user, setCurrentChat, setUpdateChats, contacts }) => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [createGroupModalIsOpen, setCreateGroupModalIsOpen] = useState(false);
+  const [settingsModalIsOpen, setSettingsModalIsOpen] = useState(false);
   const { socket } = useSocket();
   const { logout } = useAuth();
 
@@ -70,21 +71,37 @@ const Header = ({ user, setCurrentChat, setUpdateChats, contacts }) => {
     socket.emit("logout", user._id);
   };
 
-  const openModal = () => {
-    setModalIsOpen(true);
+  const openCreateGroupModal = () => {
+    setCreateGroupModalIsOpen(true);
   };
 
-  const closeModal = () => {
-    setModalIsOpen(false);
+  const closeCreateGroupModal = () => {
+    setCreateGroupModalIsOpen(false);
+  };
+
+  const openSettingsModal = () => {
+    setSettingsModalIsOpen(true);
+  };
+
+  const closeSettingsModal = () => {
+    setSettingsModalIsOpen(false);
   };
 
   return (
     <>
-      {modalIsOpen && (
+      {createGroupModalIsOpen && (
         <CreateGroupModal
-          isOpen={modalIsOpen}
-          handleClose={closeModal}
+          isOpen={createGroupModalIsOpen}
+          handleClose={closeCreateGroupModal}
           contacts={contacts}
+          user={user}
+          setUpdateChats={setUpdateChats}
+        />
+      )}
+      {settingsModalIsOpen && (
+        <SettingsModal
+          open={settingsModalIsOpen}
+          onClose={closeSettingsModal}
           user={user}
           setUpdateChats={setUpdateChats}
         />
@@ -132,17 +149,13 @@ const Header = ({ user, setCurrentChat, setUpdateChats, contacts }) => {
               <Typography variant="subtitle1">{user.email}</Typography>
             </UserInfoMenuItem>
             <Divider />
-            <MenuItemWrapper onClick={openModal}>
+            <MenuItemWrapper onClick={openCreateGroupModal}>
               <AddIcon />
               New group
             </MenuItemWrapper>
-            <MenuItemWrapper>
+            <MenuItemWrapper onClick={openSettingsModal}>
               <SettingsIcon />
               Settings
-            </MenuItemWrapper>
-            <MenuItemWrapper>
-              <PersonIcon />
-              Profile
             </MenuItemWrapper>
             <MenuItemWrapper onClick={handleLogout}>
               <ExitToAppIcon />

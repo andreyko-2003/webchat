@@ -13,7 +13,7 @@ import {
   Avatar,
 } from "@mui/material";
 
-function SignUp() {
+const SignUp = () => {
   const { control, handleSubmit, watch } = useForm();
   const { login } = useAuth();
   const [errorMessage, setErrorMessage] = useState("");
@@ -283,6 +283,6 @@ function SignUp() {
       </Container>
     </Stack>
   );
-}
+};
 
 export default SignUp;

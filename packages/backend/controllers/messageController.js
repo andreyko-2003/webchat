@@ -43,10 +43,7 @@ const sendMessage = async (req, res) => {
   }
 };
 
-const updateMessage = async (req, res) => {
-  const { updatedContent } = req.body;
-  const { messageId } = req.params;
-
+const updateMessageText = async (messageId, updatedContent) => {
   if (!messageId || !updatedContent) {
     return res.status(400).json({ error: "Invalid data sent" });
   }
@@ -61,10 +58,9 @@ const updateMessage = async (req, res) => {
     if (!updatedMessage) {
       return res.status(404).json({ error: "Message not found" });
     }
-
-    return res.status(200).json(updatedMessage);
+    return updatedMessage;
   } catch (error) {
-    return res.status(400).json({ error: `Error updating message: ${error}` });
+    console.error(`Error updating message: ${error}`);
   }
 };
 
@@ -73,6 +69,14 @@ const updateMessageStatus = async (messageId, status) => {
     await Message.findByIdAndUpdate(messageId, { status });
   } catch (error) {
     console.error("Error updating message status to 'sent':", error);
+  }
+};
+
+const deleteMessage = async (messageId) => {
+  try {
+    await Message.findByIdAndDelete(messageId);
+  } catch (error) {
+    console.error("Error deleting message:", error);
   }
 };
 
@@ -90,7 +94,8 @@ const getAllMessages = async (req, res) => {
 
 module.exports = {
   sendMessage,
-  updateMessage,
+  updateMessageText,
   updateMessageStatus,
   getAllMessages,
+  deleteMessage,
 };

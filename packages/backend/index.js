@@ -12,6 +12,8 @@ const Message = require("./models/messageModel");
 const {
   updateMessage,
   updateMessageStatus,
+  updateMessageText,
+  deleteMessage,
 } = require("./controllers/messageController");
 
 connectDB();
@@ -69,6 +71,16 @@ io.on("connection", (socket) => {
       if (user._id == message.sender._id) return;
       socket.in(user._id).emit("recieved", message);
     });
+  });
+
+  socket.on("editMessage", ({ editMessageId, updatedMessage }) => {
+    updateMessageText(editMessageId, updatedMessage);
+    io.emit("messageEdited", { _id: editMessageId, text: updatedMessage });
+  });
+
+  socket.on("deleteMessage", (messageId) => {
+    deleteMessage(messageId);
+    io.emit("messageDeleted", messageId);
   });
 
   socket.on("markAsSent", async (messageId) => {

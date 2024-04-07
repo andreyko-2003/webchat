@@ -3,13 +3,16 @@ import { formatTime } from "../../utils/datetime";
 import { Box, Typography } from "@mui/material";
 import { useSocket } from "../../contexts/SocketContext";
 import MessageStatus from "../MessageStatus/MessageStatus";
+import MessageMenu from "./MessageMenu";
 
-const SingleChatMessage = ({ message, user }) => {
+const SingleChatMessage = ({ message, user, editMessage, setEditMessage }) => {
   const { socket } = useSocket();
 
   useEffect(() => {
-    if (message.sender._id !== user._id && message.status !== "read")
-      socket.emit("markAsRead", message._id);
+    if (message._id) {
+      if (message.sender._id !== user._id && message.status !== "read")
+        socket.emit("markAsRead", message._id);
+    }
   }, [socket]);
 
   return (
@@ -17,8 +20,11 @@ const SingleChatMessage = ({ message, user }) => {
       key={message._id}
       sx={{
         display: "flex",
+        mb: "2px",
         justifyContent:
           message.sender._id === user._id ? "flex-end" : "flex-start",
+        background: editMessage && editMessage._id === message._id && "#0002",
+        borderRadius: 2,
       }}
     >
       <Box
@@ -26,7 +32,6 @@ const SingleChatMessage = ({ message, user }) => {
           width: "max-content",
           p: 1.5,
           borderRadius: 2,
-          mb: "2px",
           maxWidth: "70%",
           wordWrap: "break-word",
         }}
@@ -37,29 +42,35 @@ const SingleChatMessage = ({ message, user }) => {
           message.sender._id !== user._id ? "primary.main" : "secondary.main"
         }
       >
-        <Box>
-          <Typography variant="body1" sx={{ lineHeight: 1 }}>
-            {message.text}
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "end",
-              mt: "2px",
-            }}
-          >
-            <Typography
-              variant="overline"
-              sx={{ lineHeight: 1, opacity: "50%" }}
-            >
-              {formatTime(message.createdAt)}
+        <MessageMenu
+          message={message}
+          user={user}
+          setEditMessage={setEditMessage}
+        >
+          <Box>
+            <Typography variant="body1" sx={{ lineHeight: 1 }}>
+              {message.text}
             </Typography>
-            {message.sender._id === user._id && (
-              <MessageStatus status={message.status} />
-            )}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "end",
+                mt: "2px",
+              }}
+            >
+              <Typography
+                variant="overline"
+                sx={{ lineHeight: 1, opacity: "50%" }}
+              >
+                {formatTime(message.createdAt)}
+              </Typography>
+              {message.sender._id === user._id && (
+                <MessageStatus status={message.status} />
+              )}
+            </Box>
           </Box>
-        </Box>
+        </MessageMenu>
       </Box>
     </Box>
   );

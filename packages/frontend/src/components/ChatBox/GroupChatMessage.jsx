@@ -4,6 +4,7 @@ import { isLastMessage, isSameSender } from "../../utils/messages";
 import { formatTime } from "../../utils/datetime";
 import { useSocket } from "../../contexts/SocketContext";
 import MessageStatus from "../MessageStatus/MessageStatus";
+import MessageMenu from "./MessageMenu";
 
 const GroupChatMessage = ({ message, user, messages, index }) => {
   const { socket } = useSocket();
@@ -52,46 +53,48 @@ const GroupChatMessage = ({ message, user, messages, index }) => {
           message.sender._id !== user._id ? "primary.main" : "secondary.main"
         }
       >
-        {showUserName && (
-          <Typography
-            variant="overline"
-            sx={{ lineHeight: 1, fontWeight: "bold", mb: "6px" }}
-          >
-            {message.sender.firstName} {message.sender.lastName}
-          </Typography>
-        )}
+        <MessageMenu message={message} user={user}>
+          {showUserName && (
+            <Typography
+              variant="overline"
+              sx={{ lineHeight: 1, fontWeight: "bold", mb: "6px" }}
+            >
+              {message.sender.firstName} {message.sender.lastName}
+            </Typography>
+          )}
 
-        <Typography
-          variant="body1"
-          sx={{ lineHeight: 1, mt: showUserName && 1 }}
-        >
-          {message.text}
-        </Typography>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "end",
-            mt: "2px",
-          }}
-        >
           <Typography
-            variant="overline"
+            variant="body1"
+            sx={{ lineHeight: 1, mt: showUserName && 1 }}
+          >
+            {message.text}
+          </Typography>
+          <Box
             sx={{
-              lineHeight: 1,
-              opacity: "50%",
-              mt: 0.5,
               display: "flex",
-              justifyContent:
-                message.sender._id !== user._id ? "flex-end" : "flex-start",
+              justifyContent: "space-between",
+              alignItems: "end",
+              mt: "2px",
             }}
           >
-            {formatTime(message.createdAt)}
-          </Typography>
-          {message.sender._id === user._id && (
-            <MessageStatus status={message.status} />
-          )}
-        </Box>
+            <Typography
+              variant="overline"
+              sx={{
+                lineHeight: 1,
+                opacity: "50%",
+                mt: 0.5,
+                display: "flex",
+                justifyContent:
+                  message.sender._id !== user._id ? "flex-end" : "flex-start",
+              }}
+            >
+              {formatTime(message.createdAt)}
+            </Typography>
+            {message.sender._id === user._id && (
+              <MessageStatus status={message.status} />
+            )}
+          </Box>
+        </MessageMenu>
       </Box>
     </Box>
   );

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import {
   Box,
   IconButton,
@@ -18,13 +17,15 @@ import { getChatInfo } from "../../utils/chat";
 import GroupInfoModal from "../Modals/Group/GroupInfoModal";
 import ChatInfoModal from "../Modals/Chat/ChatInfoModal";
 import { useAuth } from "../../contexts/AuthContext";
-import { formatDate, formatTime } from "../../utils/datetime";
+import { formatDate } from "../../utils/datetime";
 import ScrollableFeed from "react-scrollable-feed";
 import GroupChatMessage from "./GroupChatMessage";
-import { isNewDayMessage } from "../../utils/messages";
+import { isLastMessage, isNewDayMessage } from "../../utils/messages";
 import { useSocket } from "../../contexts/SocketContext";
 import { getContact } from "../../utils/contacts";
 import SingleChatMessage from "./SingleChatMessage";
+import CreateMessageInput from "./CreateMessageInput";
+import UpdateMessageInput from "./UpdateMessageInput";
 
 const ContactAppBar = styled(AppBar)(({ theme }) => ({
   position: "static",
@@ -65,13 +66,19 @@ const ChatBox = ({
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
+  const [updatedMessage, setUpdatedMessage] = useState("");
   const [openChatInfoModal, setOpenChatInfoModal] = useState(false);
   const [openGroupInfoModal, setOpenGroupInfoModal] = useState(false);
   const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [userStatus, setUserStatus] = useState("Offline");
+  const [editMessage, setEditMessage] = useState(null);
   const { token } = useAuth();
   const { socket, socketConnected, usersStatuses, getUserStatus } = useSocket();
+
+  useEffect(() => {
+    setUpdateChats(messages);
+  }, [messages]);
 
   useEffect(() => {
     socket.on("typing", () => setIsTyping(true));
@@ -120,6 +127,32 @@ const ChatBox = ({
   }, [messages, socket]);
 
   useEffect(() => {
+    socket.on("messageEdited", ({ _id, text }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((message) =>
+          message._id === _id ? { ...message, text } : message
+        )
+      );
+    });
+
+    return () => {
+      socket.off("messageEdited");
+    };
+  }, [messages, socket]);
+
+  useEffect(() => {
+    socket.on("messageDeleted", (messageId) => {
+      setMessages((prevMessages) =>
+        prevMessages.filter((message) => message._id !== messageId)
+      );
+    });
+
+    return () => {
+      socket.off("messageDeleted");
+    };
+  }, [messages, socket]);
+
+  useEffect(() => {
     socket.on("recieved", (message) => {
       if (
         !selectedChatCompare ||
@@ -135,6 +168,22 @@ const ChatBox = ({
       socket.off("recieved");
     };
   }, [socket]);
+
+  useEffect(() => {
+    if (editMessage) setUpdatedMessage(editMessage.text);
+  }, [editMessage]);
+
+  const updateMessage = async (e) => {
+    if (e.key === "Enter" && updatedMessage && editMessage) {
+      try {
+        socket.emit("editMessage", {
+          editMessageId: editMessage._id,
+          updatedMessage,
+        });
+        setEditMessage(null);
+      } catch (error) {}
+    }
+  };
 
   const sendMessage = async (e) => {
     if (e.key === "Enter" && newMessage) {
@@ -155,7 +204,6 @@ const ChatBox = ({
         socket.emit("send", response.data);
         socket.emit("markAsSent", response.data._id);
         setMessages((prevMessages) => [...prevMessages, response.data]);
-        setUpdateChats(response.data);
         setNewMessage("");
       } catch (error) {}
     }
@@ -183,6 +231,10 @@ const ChatBox = ({
         setTyping(false);
       }
     }, timerLength);
+  };
+
+  const handleUpdateInput = (e) => {
+    setUpdatedMessage(e.target.value);
   };
 
   const handleGoBack = () => {
@@ -298,32 +350,33 @@ const ChatBox = ({
                     index={i}
                   />
                 ) : (
-                  <SingleChatMessage message={message} user={user} />
+                  <SingleChatMessage
+                    message={message}
+                    user={user}
+                    editMessage={editMessage}
+                    setEditMessage={setEditMessage}
+                  />
                 )}
               </Box>
             ))
           )}
         </ChatContent>
 
-        <Box
-          sx={{
-            borderTop: "1px solid #ccc",
-            padding: "16px",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <TextField
-            fullWidth
-            variant="outlined"
-            label="Type your message..."
-            autoComplete="off"
-            onKeyDown={sendMessage}
-            onChange={typingHandler}
-            value={newMessage}
+        {editMessage ? (
+          <UpdateMessageInput
+            editMessage={editMessage}
+            setEditMessage={setEditMessage}
+            updatedMessage={updatedMessage}
+            updateMessage={updateMessage}
+            handleUpdateInput={handleUpdateInput}
           />
-          {/* Add a send button here */}
-        </Box>
+        ) : (
+          <CreateMessageInput
+            sendMessage={sendMessage}
+            typingHandler={typingHandler}
+            newMessage={newMessage}
+          />
+        )}
       </ChatBoxContainer>
     </>
   );

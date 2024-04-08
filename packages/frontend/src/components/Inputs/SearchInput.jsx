@@ -69,6 +69,7 @@ const MenuItem = styled("div")({
   borderRadius: "4px",
   marginBottom: "4px",
   color: "#000000",
+  zIndex: "200",
 });
 
 const SearchInput = ({ setCurrentChat, setUpdateChats }) => {

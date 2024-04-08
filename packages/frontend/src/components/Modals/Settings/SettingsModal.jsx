@@ -24,7 +24,7 @@ const Column = styled("div")(({ theme }) => ({
 }));
 
 const SettingsModal = ({ open, onClose, user, setUpdateChats }) => {
-  const { token } = useAuth();
+  const { token, login } = useAuth();
   const { control, handleSubmit } = useForm();
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -46,17 +46,19 @@ const SettingsModal = ({ open, onClose, user, setUpdateChats }) => {
         data.email !== user.email ||
         avatarUrl !== user.avatar
       ) {
-        data.avatarUrl = avatarUrl;
+        data.avatar = avatarUrl;
         const response = await axios.put(`/user/me`, data, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+        login(response.data.token);
         setSuccessMessage("User information updated successfully.");
         setUpdateChats(response.data);
       }
       handleClose();
     } catch (error) {
+      console.error(error);
       setErrorMessage("Failed to update user information. Please try again.");
     }
   };

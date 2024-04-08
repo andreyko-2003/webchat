@@ -32,6 +32,7 @@ const ContactAppBar = styled(AppBar)(({ theme }) => ({
   background: theme.palette.secondary.main,
   color: theme.palette.primary.main,
   height: "64px",
+  zIndex: "100",
 }));
 
 const ChatBoxContainer = styled(Box)({

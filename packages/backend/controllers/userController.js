@@ -87,20 +87,22 @@ const updateMe = async (req, res) => {
   const { firstName, lastName, email, avatar } = req.body;
   const { _id } = req.user;
   try {
-    const user = await User.findByIdAndUpdate(_id, {
+    await User.findByIdAndUpdate(_id, {
       firstName,
       lastName,
       email,
       avatar,
     });
+
     const data = {
-      _id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      avatar: user.avatar,
+      _id,
+      firstName,
+      lastName,
+      email,
+      avatar,
     };
-    return res.status(200).json(data);
+
+    return res.status(200).json({ ...data, token: await getToken(data) });
   } catch (error) {
     return res.status(500).json({ error: `Error updating user: ${error}` });
   }

@@ -154,7 +154,7 @@ const ChatBox = ({
   }, [messages, socket]);
 
   useEffect(() => {
-    socket.on("recieved", (message) => {
+    socket.on("received", (message) => {
       if (
         !selectedChatCompare ||
         selectedChatCompare._id !== message.chat._id
@@ -166,7 +166,7 @@ const ChatBox = ({
     });
 
     return () => {
-      socket.off("recieved");
+      socket.off("received");
     };
   }, [socket]);
 

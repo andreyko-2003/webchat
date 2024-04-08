@@ -101,6 +101,7 @@ function SignIn() {
                   fullWidth
                   label="Password"
                   type="password"
+                  autoComplete="password"
                   error={!!fieldState.error}
                   helperText={
                     fieldState.error ? fieldState.error.message : null

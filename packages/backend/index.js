@@ -1,6 +1,8 @@
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
 
 const connectDB = require("./configs/bd");
 
@@ -8,9 +10,7 @@ const userRouter = require("./routes/userRoutes");
 const messageRouter = require("./routes/messageRoutes");
 const chatRouter = require("./routes/chatRoutes");
 const { updateUserStatus } = require("./controllers/userController");
-const Message = require("./models/messageModel");
 const {
-  updateMessage,
   updateMessageStatus,
   updateMessageText,
   deleteMessage,
@@ -21,8 +21,25 @@ const app = express();
 
 const port = 5000;
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
+
 app.use(cors());
 app.use(bodyParser.json());
+
+app.post('/upload', upload.single('file'), (req, res) => {
+  const file = req.file;
+  res.status(200).json({ filename: file.filename, url: `/uploads/${file.filename}` });
+});
+
+app.use('/uploads', express.static('uploads'));
 
 app.use("/user", userRouter);
 app.use("/chat", chatRouter);
@@ -65,11 +82,11 @@ io.on("connection", (socket) => {
       ? chat.groupAdmins.concat(chat.users)
       : chat.users;
 
-    if (!users) return console.log("No chat users");
+    if (!users || users.length === 0) return console.log("No chat users");
 
     users.forEach((user) => {
       if (user._id == message.sender._id) return;
-      socket.in(user._id).emit("recieved", message);
+      socket.in(user._id).emit("received", message);
     });
   });
 

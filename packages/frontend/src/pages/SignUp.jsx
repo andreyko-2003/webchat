@@ -42,21 +42,20 @@ const SignUp = () => {
     setErrorMessage("");
     const file = event.target.files[0];
     if (file.type === "image/jpeg" || file.type === "image/png") {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "webchat");
-      formData.append("cloud_name", "dels8vm8i");
-
-      try {
-        const response = await axios.post(
-          "https://api.cloudinary.com/v1_1/dels8vm8i/image/upload",
-          formData
-        );
-        setAvatarUrl(response.data.secure_url);
-      } catch (error) {
-        setErrorMessage(
-          "Error uploading file. Please try adding the avatar later."
-        );
+      if (file.size > 10485760) { 
+        setErrorMessage("File size exceeds the limit of 10MB.");
+      } else {
+        const formData = new FormData();
+        formData.append("file", file);
+  
+        try {
+          const response = await axios.post("/upload", formData);
+          setAvatarUrl(response.data.url);
+        } catch (error) {
+          setErrorMessage(
+            "Error uploading file. Please try adding the avatar later."
+          );
+        }
       }
     } else {
       setErrorMessage("Unsupported file type.");
@@ -141,6 +140,7 @@ const SignUp = () => {
                   margin="normal"
                   fullWidth
                   label="Email"
+                  autoComplete="email"
                   error={!!fieldState.error}
                   helperText={
                     fieldState.error ? fieldState.error.message : null
@@ -167,6 +167,7 @@ const SignUp = () => {
                   fullWidth
                   label="Password"
                   type="password"
+                  autoComplete="new-password"
                   error={!!fieldState.error}
                   helperText={
                     fieldState.error ? fieldState.error.message : null
@@ -193,6 +194,7 @@ const SignUp = () => {
                   fullWidth
                   label="Confirm Password"
                   type="password"
+                  autoComplete="new-password"
                   error={!!fieldState.error}
                   helperText={
                     fieldState.error ? fieldState.error.message : null

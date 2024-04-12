@@ -23,23 +23,25 @@ const port = 5000;
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, "uploads/");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
-  }
+  },
 });
 const upload = multer({ storage: storage });
 
 app.use(cors());
 app.use(bodyParser.json());
 
-app.post('/upload', upload.single('file'), (req, res) => {
+app.post("/upload", upload.single("file"), (req, res) => {
   const file = req.file;
-  res.status(200).json({ filename: file.filename, url: `/uploads/${file.filename}` });
+  res
+    .status(200)
+    .json({ filename: file.filename, url: `/uploads/${file.filename}` });
 });
 
-app.use('/uploads', express.static('uploads'));
+app.use("/uploads", express.static("uploads"));
 
 app.use("/user", userRouter);
 app.use("/chat", chatRouter);
@@ -72,8 +74,8 @@ io.on("connection", (socket) => {
     socket.join(room);
   });
 
-  socket.on("typing", (room) => socket.in(room).emit("typing"));
-  socket.on("stopTyping", (room) => socket.in(room).emit("stopTyping"));
+  socket.on("typing", (room) => socket.in(room).emit("typing", room));
+  socket.on("stopTyping", (room) => socket.in(room).emit("stopTyping", room));
 
   socket.on("send", (message) => {
     const chat = message.chat;

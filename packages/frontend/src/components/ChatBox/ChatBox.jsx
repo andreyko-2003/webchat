@@ -82,8 +82,18 @@ const ChatBox = ({
   }, [messages]);
 
   useEffect(() => {
-    socket.on("typing", () => setIsTyping(true));
-    socket.on("stopTyping", () => setIsTyping(false));
+    socket.on("typing", (room) => {
+      if (room === currentChat._id) setIsTyping(true);
+    });
+
+    socket.on("stopTyping", (room) => {
+      if (room === currentChat._id) setIsTyping(false);
+    });
+
+    return () => {
+      socket.off("typing");
+      socket.off("stopTyping");
+    };
   }, [socket]);
 
   useEffect(() => {

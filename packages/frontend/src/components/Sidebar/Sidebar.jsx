@@ -10,7 +10,6 @@ import { useAuth } from "../../contexts/AuthContext";
 import axios from "../../utils/axios";
 import { getChatInfo } from "../../utils/chat";
 import GroupsIcon from "@mui/icons-material/Groups";
-import { useSocket } from "../../contexts/SocketContext";
 import NotificationBox from "./NotificationBox";
 
 const StyledSidebar = styled(Box)({
@@ -43,7 +42,6 @@ const Sidebar = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { token } = useAuth();
-  const { notification } = useSocket();
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -64,10 +62,6 @@ const Sidebar = ({
 
     fetchChats();
   }, [token, updateChats, setChats]);
-
-  // useEffect(() => {
-  //   console.warn(notification);
-  // }, [notification]);
 
   return (
     <StyledSidebar>

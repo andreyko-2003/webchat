@@ -56,7 +56,8 @@ function Chat() {
             setUpdateChats(message);
           }
         } else {
-          setMessages((prevMessages) => [...prevMessages, message]);
+          if (selectedChatCompare._id === message.chat._id)
+            setMessages((prevMessages) => [...prevMessages, message]);
         }
       });
 
@@ -64,7 +65,7 @@ function Chat() {
         socket.off("received");
       };
     }
-  }, [socket]);
+  }, [socket, selectedChatCompare]);
 
   return user ? (
     <>

@@ -4,6 +4,7 @@ import { Box, Typography } from "@mui/material";
 import { useSocket } from "../../contexts/SocketContext";
 import MessageStatus from "../MessageStatus/MessageStatus";
 import MessageMenu from "./MessageMenu";
+import Attachment from "../Attachment/Attachment";
 
 const SingleChatMessage = ({ message, user, editMessage, setEditMessage }) => {
   const { socket, setNotification } = useSocket();
@@ -52,6 +53,18 @@ const SingleChatMessage = ({ message, user, editMessage, setEditMessage }) => {
           setEditMessage={setEditMessage}
         >
           <Box>
+            {message.attachments.length > 0 && (
+              <Box>
+                {message.attachments.map((attachment) => (
+                  <Attachment
+                    key={attachment.url}
+                    attachment={attachment}
+                    openFile={true}
+                    theme={message.sender._id === user._id ? "dark" : "light"}
+                  />
+                ))}
+              </Box>
+            )}
             <Typography variant="body1" sx={{ lineHeight: 1 }}>
               {message.text}
             </Typography>

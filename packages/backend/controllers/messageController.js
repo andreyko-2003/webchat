@@ -3,9 +3,9 @@ const Message = require("../models/messageModel");
 const Notification = require("../models/notificationModel");
 
 const sendMessage = async (req, res) => {
-  const { chatId, content } = req.body;
+  const { chatId, content, attachments } = req.body;
 
-  if (!chatId || !content) {
+  if (!chatId || (!content.trim() && attachments.length === 0)) {
     return res.status(400).json({ error: "Invalid data sent" });
   }
 
@@ -14,6 +14,7 @@ const sendMessage = async (req, res) => {
       sender: req.user._id,
       text: content,
       chat: chatId,
+      attachments: attachments,
     });
 
     const populatedMessage = await Message.findById(newMessage._id)
@@ -53,15 +54,15 @@ const sendMessage = async (req, res) => {
   }
 };
 
-const updateMessageText = async (messageId, updatedContent) => {
-  if (!messageId || !updatedContent) {
+const updateMessage = async (messageId, updatedContent, attachments) => {
+  if (!messageId || (!updatedContent.trim() && attachments.length === 0)) {
     return res.status(400).json({ error: "Invalid data sent" });
   }
 
   try {
     const updatedMessage = await Message.findByIdAndUpdate(
       messageId,
-      { text: updatedContent },
+      { text: updatedContent, attachments: attachments },
       { new: true }
     ).populate("sender", "avatar firstName lastName");
 
@@ -137,7 +138,7 @@ const getNotificationMessages = async (req, res) => {
 
 module.exports = {
   sendMessage,
-  updateMessageText,
+  updateMessage,
   updateMessageStatus,
   getAllMessages,
   deleteMessage,

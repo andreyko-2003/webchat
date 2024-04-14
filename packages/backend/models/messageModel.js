@@ -7,6 +7,7 @@ const messageModel = mongoose.Schema(
       ref: "User",
     },
     text: { type: String, trim: true },
+    attachments: [{ type: Object }],
     chat: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Chat",

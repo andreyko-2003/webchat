@@ -116,13 +116,24 @@ const Sidebar = ({
                           <Typography variant="body1">
                             {chatInfo.title}
                           </Typography>
-                          {chat.latestMessage && chat.latestMessage.text && (
-                            <Typography variant="body2">
-                              {chat.latestMessage.text.length > 20
-                                ? `${chat.latestMessage.text.substr(0, 20)}...`
-                                : chat.latestMessage.text}
-                            </Typography>
-                          )}
+                          {chat.latestMessage &&
+                            (chat.latestMessage.text ? (
+                              <Typography variant="body2">
+                                {chat.latestMessage.text.length > 20
+                                  ? `${chat.latestMessage.text.substr(0, 20)}...`
+                                  : chat.latestMessage.text}
+                              </Typography>
+                            ) : (
+                              chat.latestMessage.attachments &&
+                              chat.latestMessage.attachments.length > 0 && (
+                                <Typography variant="body2">
+                                  {
+                                    chat.latestMessage.attachments[0]
+                                      .originalname
+                                  }
+                                </Typography>
+                              )
+                            ))}
                         </Box>
                       </Box>
                       <Box sx={{ width: "10%" }}>

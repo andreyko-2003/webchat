@@ -12,7 +12,7 @@ const chatRouter = require("./routes/chatRoutes");
 const { updateUserStatus } = require("./controllers/userController");
 const {
   updateMessageStatus,
-  updateMessageText,
+  updateMessage,
   deleteMessage,
 } = require("./controllers/messageController");
 
@@ -36,9 +36,9 @@ app.use(bodyParser.json());
 
 app.post("/upload", upload.single("file"), (req, res) => {
   const file = req.file;
-  res
-    .status(200)
-    .json({ filename: file.filename, url: `/uploads/${file.filename}` });
+  const { originalname, filename, size } = file;
+  const url = `/uploads/${filename}`;
+  res.status(200).json({ originalname, filename, url, size });
 });
 
 app.use("/uploads", express.static("uploads"));
@@ -92,9 +92,13 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("editMessage", ({ editMessageId, updatedMessage }) => {
-    updateMessageText(editMessageId, updatedMessage);
-    io.emit("messageEdited", { _id: editMessageId, text: updatedMessage });
+  socket.on("editMessage", ({ editMessageId, updatedMessage, attachments }) => {
+    updateMessage(editMessageId, updatedMessage, attachments);
+    io.emit("messageEdited", {
+      _id: editMessageId,
+      text: updatedMessage,
+      attachments,
+    });
   });
 
   socket.on("deleteMessage", (messageId) => {

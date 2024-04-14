@@ -101,7 +101,7 @@ const ChatBox = ({
       socket.off("typing");
       socket.off("stopTyping");
     };
-  }, [socket]);
+  }, [socket, currentChat]);
 
   useEffect(() => {
     const userId = getContact(currentChat, user)._id;
@@ -144,10 +144,10 @@ const ChatBox = ({
   }, [messages, socket]);
 
   useEffect(() => {
-    socket.on("messageEdited", ({ _id, text }) => {
+    socket.on("messageEdited", ({ _id, text, attachments }) => {
       setMessages((prevMessages) =>
         prevMessages.map((message) =>
-          message._id === _id ? { ...message, text } : message
+          message._id === _id ? { ...message, text, attachments } : message
         )
       );
     });
@@ -173,20 +173,21 @@ const ChatBox = ({
     if (editMessage) setUpdatedMessage(editMessage.text);
   }, [editMessage]);
 
-  const updateMessage = async (e) => {
-    if (e.key === "Enter" && updatedMessage && editMessage) {
+  const updateMessage = async (attachments) => {
+    if ((updatedMessage || attachments) && editMessage) {
       try {
         socket.emit("editMessage", {
           editMessageId: editMessage._id,
           updatedMessage,
+          attachments,
         });
         setEditMessage(null);
       } catch (error) {}
     }
   };
 
-  const sendMessage = async (e) => {
-    if (e.key === "Enter" && newMessage) {
+  const sendMessage = async (attachments) => {
+    if (newMessage || attachments) {
       try {
         socket.emit("stopTyping", currentChat._id);
         const response = await axios.post(
@@ -194,6 +195,7 @@ const ChatBox = ({
           {
             chatId: currentChat._id,
             content: newMessage,
+            attachments: attachments,
           },
           {
             headers: {

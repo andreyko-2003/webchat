@@ -104,7 +104,7 @@ const ChatBox = ({
   }, [socket, currentChat]);
 
   useEffect(() => {
-    const userId = getContact(currentChat, user)._id;
+    const userId = getContact(currentChat, user._id);
     setUserStatus(getUserStatus(userId));
   }, [usersStatuses, currentChat, getUserStatus, user]);
 

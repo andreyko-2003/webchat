@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import io from "socket.io-client";
+import axios from "../utils/axios";
 import { useAuth } from "./AuthContext";
 import { latestActivityFormatDateTime } from "../utils/datetime";
 
@@ -11,8 +12,22 @@ const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const [usersStatuses, setUsersStatuses] = useState({});
+  const [selectedChatCompare, setSelectedChatCompare] = useState(null);
+  const [notification, setNotification] = useState([]);
 
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+
+  useEffect(() => {
+    const getNotification = async () => {
+      const response = await axios.get("/message/notif", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setNotification(response.data);
+    };
+    getNotification();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -56,6 +71,10 @@ const SocketProvider = ({ children }) => {
         usersStatuses,
         isUserOnline,
         getUserStatus,
+        selectedChatCompare,
+        setSelectedChatCompare,
+        notification,
+        setNotification,
       }}
     >
       {children}

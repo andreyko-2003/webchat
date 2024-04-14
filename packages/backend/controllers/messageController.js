@@ -1,6 +1,6 @@
 const Chat = require("../models/chatModel");
 const Message = require("../models/messageModel");
-const User = require("../models/userModel");
+const Notification = require("../models/notificationModel");
 
 const sendMessage = async (req, res) => {
   const { chatId, content } = req.body;
@@ -37,6 +37,16 @@ const sendMessage = async (req, res) => {
 
     await Chat.findByIdAndUpdate(chatId, { latestMessage: newMessage._id });
 
+    for (const user of [...chat.users, ...chat.groupAdmins]) {
+      if (user._id.toString() !== req.user._id.toString()) {
+        await Notification.create({
+          message: newMessage._id,
+          user: user._id,
+          chat: chat._id,
+        });
+      }
+    }
+
     return res.status(200).json(populatedMessage);
   } catch (error) {
     return res.status(400).json({ error: `Error sending message: ${error}` });
@@ -64,11 +74,26 @@ const updateMessageText = async (messageId, updatedContent) => {
   }
 };
 
-const updateMessageStatus = async (messageId, status) => {
+const updateMessageStatus = async (messageId, status, userId) => {
   try {
-    await Message.findByIdAndUpdate(messageId, { status });
+    const message = await Message.findByIdAndUpdate(messageId, { status });
+    status === "read" &&
+      userId &&
+      deleteNotification(messageId, message.chat, userId);
   } catch (error) {
-    console.error("Error updating message status to 'sent':", error);
+    console.error("Error updating message status:", error);
+  }
+};
+
+const deleteNotification = async (messageId, chatId, userId) => {
+  try {
+    await Notification.deleteMany({
+      message: messageId,
+      user: userId,
+      chat: chatId,
+    });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
   }
 };
 
@@ -92,10 +117,29 @@ const getAllMessages = async (req, res) => {
   }
 };
 
+const getNotificationMessages = async (req, res) => {
+  try {
+    const notifications = await Notification.find({ user: req.user._id });
+
+    const messageIds = notifications.map(
+      (notification) => notification.message
+    );
+
+    const messages = await Message.find({ _id: { $in: messageIds } })
+      .populate("sender", "firstName lastName avatar email")
+      .populate("chat");
+
+    return res.json(messages);
+  } catch (error) {
+    return res.status(400).json({ error: `Error getting messages: ${error}` });
+  }
+};
+
 module.exports = {
   sendMessage,
   updateMessageText,
   updateMessageStatus,
   getAllMessages,
   deleteMessage,
+  getNotificationMessages,
 };

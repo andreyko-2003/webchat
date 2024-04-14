@@ -6,14 +6,27 @@ import { useAuth } from "../contexts/AuthContext";
 import ChatBox from "../components/ChatBox/ChatBox";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
+import { useSocket } from "../contexts/SocketContext";
 
 function Chat() {
   const { user } = useAuth();
+  const [messages, setMessages] = useState([]);
   const [currentChat, setCurrentChat] = useState({});
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 600);
   const [updateChats, setUpdateChats] = useState();
   const [chats, setChats] = useState([]);
   const [contacts, setContacts] = useState(getContacts(chats, user));
+  const {
+    socket,
+    selectedChatCompare,
+    setSelectedChatCompare,
+    notification,
+    setNotification,
+  } = useSocket();
+
+  useEffect(() => {
+    setSelectedChatCompare(currentChat._id ? currentChat : null);
+  }, [currentChat]);
 
   useEffect(() => {
     setContacts(getContacts(chats, user));
@@ -30,6 +43,28 @@ function Chat() {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("received", (message) => {
+        if (
+          !selectedChatCompare ||
+          selectedChatCompare._id !== message.chat._id
+        ) {
+          if (!notification.includes(message)) {
+            setNotification((prev) => [...prev, message]);
+            setUpdateChats(message);
+          }
+        } else {
+          setMessages((prevMessages) => [...prevMessages, message]);
+        }
+      });
+
+      return () => {
+        socket.off("received");
+      };
+    }
+  }, [socket]);
 
   return user ? (
     <>
@@ -66,6 +101,8 @@ function Chat() {
                   currentChat={currentChat}
                   setCurrentChat={setCurrentChat}
                   setUpdateChats={setUpdateChats}
+                  messages={messages}
+                  setMessages={setMessages}
                 />
               ) : (
                 <Box

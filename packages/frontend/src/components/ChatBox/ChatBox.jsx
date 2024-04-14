@@ -55,16 +55,15 @@ const ChatContent = styled(ScrollableFeed)({
   },
 });
 
-var selectedChatCompare;
-
 const ChatBox = ({
   isSmallScreen,
   user,
   currentChat,
   setCurrentChat,
   setUpdateChats,
+  messages,
+  setMessages,
 }) => {
-  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [updatedMessage, setUpdatedMessage] = useState("");
@@ -75,7 +74,15 @@ const ChatBox = ({
   const [userStatus, setUserStatus] = useState("Offline");
   const [editMessage, setEditMessage] = useState(null);
   const { token } = useAuth();
-  const { socket, socketConnected, usersStatuses, getUserStatus } = useSocket();
+  const {
+    socket,
+    socketConnected,
+    usersStatuses,
+    getUserStatus,
+    selectedChatCompare,
+    notification,
+    setNotification,
+  } = useSocket();
 
   useEffect(() => {
     setUpdateChats(messages);
@@ -120,7 +127,6 @@ const ChatBox = ({
       }
     };
     getMessages();
-    selectedChatCompare = currentChat;
   }, [currentChat, token, socket]);
 
   useEffect(() => {
@@ -162,23 +168,6 @@ const ChatBox = ({
       socket.off("messageDeleted");
     };
   }, [messages, socket]);
-
-  useEffect(() => {
-    socket.on("received", (message) => {
-      if (
-        !selectedChatCompare ||
-        selectedChatCompare._id !== message.chat._id
-      ) {
-        // TODO
-      } else {
-        setMessages((prevMessages) => [...prevMessages, message]);
-      }
-    });
-
-    return () => {
-      socket.off("received");
-    };
-  }, [socket]);
 
   useEffect(() => {
     if (editMessage) setUpdatedMessage(editMessage.text);

@@ -10,6 +10,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import axios from "../../utils/axios";
 import { getChatInfo } from "../../utils/chat";
 import GroupsIcon from "@mui/icons-material/Groups";
+import { useSocket } from "../../contexts/SocketContext";
+import NotificationBox from "./NotificationBox";
 
 const StyledSidebar = styled(Box)({
   width: "100%",
@@ -41,6 +43,7 @@ const Sidebar = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { token } = useAuth();
+  const { notification } = useSocket();
 
   useEffect(() => {
     const fetchChats = async () => {
@@ -61,6 +64,10 @@ const Sidebar = ({
 
     fetchChats();
   }, [token, updateChats, setChats]);
+
+  // useEffect(() => {
+  //   console.warn(notification);
+  // }, [notification]);
 
   return (
     <StyledSidebar>
@@ -88,32 +95,44 @@ const Sidebar = ({
                   >
                     <Box
                       sx={{
+                        width: "100%",
                         display: "flex",
                         alignItems: "center",
                       }}
                     >
-                      <Avatar
-                        alt={chatInfo.title}
-                        src={chatInfo.avatar}
+                      <Box
                         sx={{
-                          marginRight: "8px",
-                          background: "gray",
-                          color: "white",
+                          width: "90%",
+                          display: "flex",
+                          alignItems: "center",
                         }}
                       >
-                        {chat.isGroupChat && !chat.avatar && <GroupsIcon />}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body1">
-                          {chatInfo.title}
-                        </Typography>
-                        {chat.latestMessage && chat.latestMessage.text && (
-                          <Typography variant="body2">
-                            {chat.latestMessage.text.length > 20
-                              ? `${chat.latestMessage.text.substr(0, 20)}...`
-                              : chat.latestMessage.text}
+                        <Avatar
+                          alt={chatInfo.title}
+                          src={chatInfo.avatar}
+                          sx={{
+                            marginRight: "8px",
+                            background: "gray",
+                            color: "white",
+                          }}
+                        >
+                          {chat.isGroupChat && !chat.avatar && <GroupsIcon />}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body1">
+                            {chatInfo.title}
                           </Typography>
-                        )}
+                          {chat.latestMessage && chat.latestMessage.text && (
+                            <Typography variant="body2">
+                              {chat.latestMessage.text.length > 20
+                                ? `${chat.latestMessage.text.substr(0, 20)}...`
+                                : chat.latestMessage.text}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                      <Box sx={{ width: "10%" }}>
+                        <NotificationBox chatId={chat._id} />
                       </Box>
                     </Box>
                   </ListItem>

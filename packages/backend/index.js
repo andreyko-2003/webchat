@@ -107,8 +107,8 @@ io.on("connection", (socket) => {
     io.emit("messageStatusUpdate", { messageId, status: "sent" });
   });
 
-  socket.on("markAsRead", async (messageId) => {
-    updateMessageStatus(messageId, "read");
+  socket.on("markAsRead", async ({ messageId, userId }) => {
+    updateMessageStatus(messageId, "read", userId);
     io.emit("messageStatusUpdate", { messageId, status: "read" });
   });
 

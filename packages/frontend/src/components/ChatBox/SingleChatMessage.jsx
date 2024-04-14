@@ -6,12 +6,16 @@ import MessageStatus from "../MessageStatus/MessageStatus";
 import MessageMenu from "./MessageMenu";
 
 const SingleChatMessage = ({ message, user, editMessage, setEditMessage }) => {
-  const { socket } = useSocket();
+  const { socket, setNotification } = useSocket();
 
   useEffect(() => {
     if (message._id) {
-      if (message.sender._id !== user._id && message.status !== "read")
-        socket.emit("markAsRead", message._id);
+      if (message.sender._id !== user._id && message.status !== "read") {
+        socket.emit("markAsRead", { messageId: message._id, userId: user._id });
+        setNotification((prev) =>
+          prev.filter((prevMessage) => message._id !== prevMessage._id)
+        );
+      }
     }
   }, [socket]);
 

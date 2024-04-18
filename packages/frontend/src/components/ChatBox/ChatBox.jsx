@@ -26,6 +26,7 @@ import { getContact } from "../../utils/contacts";
 import SingleChatMessage from "./SingleChatMessage";
 import CreateMessageInput from "./CreateMessageInput";
 import UpdateMessageInput from "./UpdateMessageInput";
+import { decryptMessage, encryptMessage } from "../../utils/encryption";
 
 const ContactAppBar = styled(AppBar)(({ theme }) => ({
   position: "static",
@@ -194,7 +195,7 @@ const ChatBox = ({
           "/message/",
           {
             chatId: currentChat._id,
-            content: newMessage,
+            content: encryptMessage(newMessage, currentChat._id),
             attachments: attachments,
           },
           {

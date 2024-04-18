@@ -5,6 +5,7 @@ import { useSocket } from "../../contexts/SocketContext";
 import MessageStatus from "../MessageStatus/MessageStatus";
 import MessageMenu from "./MessageMenu";
 import Attachment from "../Attachment/Attachment";
+import { decryptMessage } from "../../utils/encryption";
 
 const SingleChatMessage = ({ message, user, editMessage, setEditMessage }) => {
   const { socket, setNotification } = useSocket();
@@ -66,7 +67,7 @@ const SingleChatMessage = ({ message, user, editMessage, setEditMessage }) => {
               </Box>
             )}
             <Typography variant="body1" sx={{ lineHeight: 1 }}>
-              {message.text}
+              {decryptMessage(message.text, message.chat._id)}
             </Typography>
             <Box
               sx={{

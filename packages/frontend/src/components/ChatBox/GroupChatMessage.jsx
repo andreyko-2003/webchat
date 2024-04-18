@@ -6,6 +6,7 @@ import { useSocket } from "../../contexts/SocketContext";
 import MessageStatus from "../MessageStatus/MessageStatus";
 import MessageMenu from "./MessageMenu";
 import Attachment from "../Attachment/Attachment";
+import { decryptMessage } from "../../utils/encryption";
 
 const GroupChatMessage = ({ message, user, messages, index }) => {
   const { socket, setNotification } = useSocket();
@@ -83,7 +84,7 @@ const GroupChatMessage = ({ message, user, messages, index }) => {
             variant="body1"
             sx={{ lineHeight: 1, mt: showUserName && 1 }}
           >
-            {message.text}
+            {decryptMessage(message.text, message.chat._id)}
           </Typography>
           <Box
             sx={{

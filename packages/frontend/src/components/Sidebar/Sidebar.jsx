@@ -11,6 +11,7 @@ import axios from "../../utils/axios";
 import { getChatInfo } from "../../utils/chat";
 import GroupsIcon from "@mui/icons-material/Groups";
 import NotificationBox from "./NotificationBox";
+import { decryptMessage } from "../../utils/encryption";
 
 const StyledSidebar = styled(Box)({
   width: "100%",
@@ -99,6 +100,7 @@ const Sidebar = ({
                           width: "90%",
                           display: "flex",
                           alignItems: "center",
+                          overflowX: "hidden",
                         }}
                       >
                         <Avatar
@@ -118,10 +120,11 @@ const Sidebar = ({
                           </Typography>
                           {chat.latestMessage &&
                             (chat.latestMessage.text ? (
-                              <Typography variant="body2">
-                                {chat.latestMessage.text.length > 20
-                                  ? `${chat.latestMessage.text.substr(0, 20)}...`
-                                  : chat.latestMessage.text}
+                              <Typography variant="body2" noWrap={true}>
+                                {decryptMessage(
+                                  chat.latestMessage.text,
+                                  chat._id
+                                )}
                               </Typography>
                             ) : (
                               chat.latestMessage.attachments &&

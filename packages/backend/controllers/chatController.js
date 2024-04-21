@@ -204,8 +204,6 @@ const deleteChat = async (req, res) => {
   }
 };
 
-module.exports = deleteChat;
-
 module.exports = {
   createChat,
   getMyChats,

@@ -2,8 +2,6 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// import Home from './components/Home';
-
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 

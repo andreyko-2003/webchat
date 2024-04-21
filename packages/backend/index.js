@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const express = require("express");
@@ -19,7 +21,8 @@ const {
 connectDB();
 const app = express();
 
-const port = 5000;
+const host = process.env.HOST;
+const port = process.env.PORT;
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -48,13 +51,13 @@ app.use("/chat", chatRouter);
 app.use("/message", messageRouter);
 
 const server = app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on ${host}:${port}`);
 });
 
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_ROUTE,
   },
 });
 

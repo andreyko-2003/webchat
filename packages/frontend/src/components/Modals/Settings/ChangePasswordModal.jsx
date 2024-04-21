@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Box, Button, Modal, Typography, TextField } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
 import ModalBox from "../ModalBox";
-import axios from "../../../utils/axios";
+import axios from "../../../utils/axios.js";
 import { useAuth } from "../../../contexts/AuthContext";
 
 const ChangePasswordModal = ({ open, onClose }) => {

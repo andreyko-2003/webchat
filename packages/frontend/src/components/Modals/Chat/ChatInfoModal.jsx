@@ -1,5 +1,5 @@
 import React from "react";
-import axios from "../../../utils/axios";
+import axios from "../../../utils/axios.js";
 import styled from "@emotion/styled";
 import { Avatar, Box, Button, Modal, Typography } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";

@@ -9,7 +9,7 @@ import {
   Avatar,
   CircularProgress,
 } from "@mui/material";
-import axios from "../../utils/axios";
+import axios from "../../utils/axios.js";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import styled from "@emotion/styled";
 import GroupsIcon from "@mui/icons-material/Groups";

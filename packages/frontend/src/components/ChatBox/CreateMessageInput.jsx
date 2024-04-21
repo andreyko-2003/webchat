@@ -2,7 +2,7 @@ import { Box, TextField, IconButton } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import React, { useRef, useState } from "react";
-import axios from "../../utils/axios";
+import axios from "../../utils/axios.js";
 import Attachment from "../Attachment/Attachment";
 
 const CreateMessageInput = ({ sendMessage, typingHandler, newMessage }) => {

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import io from "socket.io-client";
-import axios from "../utils/axios";
+import axios from "../utils/axios.js";
 import { useAuth } from "./AuthContext";
 import { latestActivityFormatDateTime } from "../utils/datetime";
 

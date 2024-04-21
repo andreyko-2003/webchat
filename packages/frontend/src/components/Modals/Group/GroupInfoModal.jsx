@@ -1,7 +1,7 @@
 import React from "react";
 import { Avatar, Modal, Typography, Button, Box } from "@mui/material";
 import GroupsIcon from "@mui/icons-material/Groups";
-import axios from "../../../utils/axios";
+import axios from "../../../utils/axios.js";
 import ModalBox from "../ModalBox";
 import { getChatInfo } from "../../../utils/chat";
 import styled from "@emotion/styled";

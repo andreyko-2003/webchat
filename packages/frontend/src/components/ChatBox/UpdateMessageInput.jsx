@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import SendIcon from "@mui/icons-material/Send";
-import axios from "../../utils/axios";
+import axios from "../../utils/axios.js";
 import Attachment from "../Attachment/Attachment";
 
 const UpdateMessageInput = ({

@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { styled } from "@mui/system";
-import axios from "../../utils/axios";
+import axios from "../../utils/axios.js";
 import { useAuth } from "../../contexts/AuthContext";
 
 const SearchContainer = styled("div")(({ theme }) => ({

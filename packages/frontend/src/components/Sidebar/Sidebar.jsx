@@ -7,7 +7,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Avatar from "@mui/material/Avatar";
 import { styled } from "@mui/system";
 import { useAuth } from "../../contexts/AuthContext";
-import axios from "../../utils/axios";
+import axios from "../../utils/axios.js";
 import { getChatInfo } from "../../utils/chat";
 import GroupsIcon from "@mui/icons-material/Groups";
 import NotificationBox from "./NotificationBox";

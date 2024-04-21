@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "../../../utils/axios";
+import axios from "../../../utils/axios.js";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -68,12 +68,12 @@ const CreateGroupModal = ({
     setErrorMessage("");
     const file = event.target.files[0];
     if (file.type === "image/jpeg" || file.type === "image/png") {
-      if (file.size > 10485760) { 
+      if (file.size > 10485760) {
         setErrorMessage("File size exceeds the limit of 10MB.");
       } else {
         const formData = new FormData();
         formData.append("file", file);
-  
+
         try {
           const response = await axios.post("/upload", formData);
           setAvatarUrl(response.data.url);

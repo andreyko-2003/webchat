@@ -4,7 +4,7 @@ import axios from "../utils/axios.js";
 import { useAuth } from "./AuthContext";
 import { latestActivityFormatDateTime } from "../utils/datetime";
 
-const SOCKET_SERVER_URL = "http://localhost:5000";
+const SOCKET_SERVER_URL = process.env.REACT_APP_API_BASE_URL;
 
 const SocketContext = createContext();
 

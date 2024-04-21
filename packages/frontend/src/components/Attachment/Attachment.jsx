@@ -29,7 +29,10 @@ const Attachment = ({ attachment, theme, onDelete, openFile }) => {
       }}
       onClick={() =>
         openFile &&
-        window.open(`http://localhost:5000${attachment.url}`, "_blank")
+        window.open(
+          `${process.env.REACT_APP_API_BASE_URL}${attachment.url}`,
+          "_blank"
+        )
       }
     >
       <InsertDriveFileIcon sx={{ color: textColor, mr: 1 }} />

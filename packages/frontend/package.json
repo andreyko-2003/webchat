@@ -7,7 +7,6 @@
     "type": "git",
     "url": "https://git.ztu.edu.ua/ipz/bachelor-2020-2024/zipz-20-1/ishchenko-andrii/webchat.git"
   },
-  "proxy": "https://webchat-backend-nvjw.onrender.com",
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
